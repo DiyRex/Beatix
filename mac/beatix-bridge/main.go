@@ -14,11 +14,29 @@
 package main
 
 /*
-#cgo LDFLAGS: -framework CoreMIDI -framework CoreFoundation
+#cgo LDFLAGS: -framework CoreMIDI -framework CoreFoundation -framework CoreGraphics
 #include <CoreMIDI/CoreMIDI.h>
+#include <CoreGraphics/CoreGraphics.h>
 
 static MIDIClientRef   gClient;
 static MIDIEndpointRef gSource;
+
+// Synthesize a keystroke to the focused app (e.g. Rekordbox track-list nav).
+// Requires the bridge binary to have Accessibility permission.
+void beatix_key(int keycode, int shift) {
+    CGEventSourceRef src = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
+    CGEventRef down = CGEventCreateKeyboardEvent(src, (CGKeyCode)keycode, true);
+    CGEventRef up   = CGEventCreateKeyboardEvent(src, (CGKeyCode)keycode, false);
+    if (shift) {
+        CGEventSetFlags(down, kCGEventFlagMaskShift);
+        CGEventSetFlags(up, kCGEventFlagMaskShift);
+    }
+    CGEventPost(kCGHIDEventTap, down);
+    CGEventPost(kCGHIDEventTap, up);
+    CFRelease(down);
+    CFRelease(up);
+    CFRelease(src);
+}
 
 // Returns 0 on success, otherwise the OSStatus error code.
 int beatix_midi_init() {
@@ -133,6 +151,19 @@ func handleLine(line string, verbose bool) {
 		sendMIDI(statusCC, clamp7(cc), v)
 		if verbose {
 			log.Printf("jog cc %d delta %d", cc, delta)
+		}
+	case "K": // synthesize a keystroke (e.g. browse arrows): "K <keycode> <shift>"
+		if len(f) != 3 {
+			return
+		}
+		keycode, err1 := strconv.Atoi(f[1])
+		shift, err2 := strconv.Atoi(f[2])
+		if err1 != nil || err2 != nil {
+			return
+		}
+		C.beatix_key(C.int(keycode), C.int(shift))
+		if verbose {
+			log.Printf("key %d shift %d", keycode, shift)
 		}
 	}
 }

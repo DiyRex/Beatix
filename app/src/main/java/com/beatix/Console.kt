@@ -56,8 +56,17 @@ fun ConsoleScreen(midi: MidiClient) {
 
 enum class Side { LEFT, RIGHT }
 
+enum class PadMode { HOTCUE, PADFX, BEATJUMP, SAMPLER }
+
 @Composable
 private fun Deck(ids: DeckIds, side: Side, midi: MidiClient, modifier: Modifier) {
+    var mode by remember { mutableStateOf(PadMode.HOTCUE) }
+    val bank = when (mode) {
+        PadMode.HOTCUE -> ids.pads
+        PadMode.PADFX -> ids.padFx
+        PadMode.BEATJUMP -> ids.beatJump
+        PadMode.SAMPLER -> ids.sampler
+    }
     val deckBody: @Composable (Modifier) -> Unit = { m ->
         Column(
             modifier = m
@@ -65,39 +74,51 @@ private fun Deck(ids: DeckIds, side: Side, midi: MidiClient, modifier: Modifier)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Panel)
                 .padding(5.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            // top: SHIFT + loop/sync.  SHIFT turns SYNC->MASTER and 4BEAT->EXIT.
             Row(
-                Modifier.fillMaxWidth().weight(0.14f),
+                Modifier.fillMaxWidth().weight(0.13f),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Pad("IN", ids.loopIn, midi, Modifier.weight(1f).fillMaxHeight())
-                Pad("OUT", ids.loopOut, midi, Modifier.weight(1f).fillMaxHeight())
-                Pad("4 BEAT", ids.fourBeat, midi, Modifier.weight(1.2f).fillMaxHeight())
+                ShiftButton(ids.shift, midi, Modifier.weight(0.85f).fillMaxHeight())
+                Pad("IN", ids.loopIn, midi, Modifier.weight(0.9f).fillMaxHeight())
+                Pad("OUT", ids.loopOut, midi, Modifier.weight(0.9f).fillMaxHeight())
+                Pad("4BEAT", ids.fourBeat, midi, Modifier.weight(1f).fillMaxHeight())
                 Pad("SYNC", ids.sync, midi, Modifier.weight(1f).fillMaxHeight(), accent = Amber)
             }
-            // smaller jog -> more room for pads
             Box(
-                Modifier.fillMaxWidth().weight(0.30f),
+                Modifier.fillMaxWidth().weight(0.26f),
                 contentAlignment = Alignment.Center,
             ) { Jog(ids.jog, ids.jogTouch, midi) }
+            // pad-mode tabs
+            Row(
+                Modifier.fillMaxWidth().weight(0.09f),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                ModeTab("HOT CUE", PadMode.HOTCUE, mode, ids.modeHotcue, midi, { mode = it }, Modifier.weight(1f))
+                ModeTab("PAD FX", PadMode.PADFX, mode, ids.modePadfx, midi, { mode = it }, Modifier.weight(1f))
+                ModeTab("JUMP", PadMode.BEATJUMP, mode, ids.modeBeatjump, midi, { mode = it }, Modifier.weight(1f))
+                ModeTab("SMPLR", PadMode.SAMPLER, mode, ids.modeSampler, midi, { mode = it }, Modifier.weight(1f))
+            }
+            // pads — current mode's bank
             Column(
-                Modifier.fillMaxWidth().weight(0.31f),
+                Modifier.fillMaxWidth().weight(0.28f),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    ids.pads.take(4).forEachIndexed { i, p ->
+                    bank.take(4).forEachIndexed { i, p ->
                         Pad("${i + 1}", p, midi, Modifier.weight(1f).fillMaxHeight(), accent = Amber)
                     }
                 }
                 Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    ids.pads.drop(4).forEachIndexed { i, p ->
+                    bank.drop(4).forEachIndexed { i, p ->
                         Pad("${i + 5}", p, midi, Modifier.weight(1f).fillMaxHeight(), accent = Amber)
                     }
                 }
             }
             Row(
-                Modifier.fillMaxWidth().weight(0.25f),
+                Modifier.fillMaxWidth().weight(0.24f),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Pad("CUE", ids.cue, midi, Modifier.weight(1f).fillMaxHeight(), accent = GrayBtn)
@@ -122,6 +143,95 @@ private fun Deck(ids: DeckIds, side: Side, midi: MidiClient, modifier: Modifier)
 }
 
 @Composable
+private fun ModeTab(
+    label: String,
+    mode: PadMode,
+    current: PadMode,
+    note: Int,
+    midi: MidiClient,
+    onSelect: (PadMode) -> Unit,
+    modifier: Modifier,
+) {
+    val active = mode == current
+    Box(
+        modifier
+            .fillMaxHeight()
+            .clip(RoundedCornerShape(4.dp))
+            .background(if (active) Amber else PadIdle)
+            .border(1.dp, Amber.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+            .pointerInput(note) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    onSelect(mode)
+                    midi.note(note, true)
+                    while (true) {
+                        val e = awaitPointerEvent()
+                        if (e.changes.none { it.pressed }) break
+                    }
+                    midi.note(note, false)
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, color = if (active) Color.Black else TextCol, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun ShiftButton(note: Int, midi: MidiClient, modifier: Modifier) {
+    var pressed by remember { mutableStateOf(false) }
+    Box(
+        modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (pressed) Amber else PadIdle)
+            .border(1.dp, Amber.copy(alpha = 0.45f), RoundedCornerShape(6.dp))
+            .pointerInput(note) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    pressed = true
+                    midi.note(note, true)
+                    while (true) {
+                        val e = awaitPointerEvent()
+                        if (e.changes.none { it.pressed }) break
+                    }
+                    pressed = false
+                    midi.note(note, false)
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text("SHIFT", color = if (pressed) Color.Black else TextCol, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+/** Button that synthesizes a Mac keystroke via the bridge (used for browse). */
+@Composable
+private fun KeyButton(label: String, keycode: Int, shift: Boolean, midi: MidiClient, modifier: Modifier) {
+    var pressed by remember { mutableStateOf(false) }
+    Box(
+        modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (pressed) Amber else PadIdle)
+            .border(1.dp, Amber.copy(alpha = 0.45f), RoundedCornerShape(6.dp))
+            .pointerInput(keycode) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    pressed = true
+                    midi.key(keycode, shift)
+                    while (true) {
+                        val e = awaitPointerEvent()
+                        if (e.changes.none { it.pressed }) break
+                    }
+                    pressed = false
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, color = if (pressed) Color.Black else TextCol, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
 private fun Mixer(midi: MidiClient, modifier: Modifier) {
     Column(
         modifier = modifier
@@ -137,8 +247,8 @@ private fun Mixer(midi: MidiClient, modifier: Modifier) {
             horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             Pad("LOAD A", Center.LOAD_A, midi, Modifier.weight(1.2f).fillMaxHeight())
-            StepButton("▲", Center.BROWSE_CC, +1, midi, Modifier.weight(0.7f).fillMaxHeight())
-            StepButton("▼", Center.BROWSE_CC, -1, midi, Modifier.weight(0.7f).fillMaxHeight())
+            KeyButton("▲", Center.KEY_ARROW_UP, false, midi, Modifier.weight(0.7f).fillMaxHeight())
+            KeyButton("▼", Center.KEY_ARROW_DOWN, false, midi, Modifier.weight(0.7f).fillMaxHeight())
             Pad("LOAD B", Center.LOAD_B, midi, Modifier.weight(1.2f).fillMaxHeight())
         }
         // EQ row (CH1 | BEAT FX | CH2) — EQ only, no channel faders here

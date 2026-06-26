@@ -173,19 +173,23 @@ python3 /tmp/gen_beatix_csv.py   # writes ~/Desktop/Beatix.midi.csv
 
 ## Status
 
-**Working & confirmed:** Play, Cue, Sync, Loop In/Out, 4-Beat Loop, Hot Cues 1–8,
-EQ Hi/Mid/Low, Channel faders, Tempo, Load A/B. Plug-and-play daemon. Edge-to-edge
-cutout layout.
+**Working:** Play, Cue, Sync, Loop In/Out, 4-Beat Loop, Hot Cues 1–8, EQ Hi/Mid/Low,
+Channel faders, Tempo, Load A/B, **Crossfader**, **pad-mode banks** (Hot Cue / Pad FX /
+Beat Jump / Sampler via per-deck tabs), **SHIFT** modifier, plug-and-play daemon,
+edge-to-edge cutout layout.
 
-**Fixed, pending on-device confirmation:** Crossfader, Browse arrows, Beat FX
-(moved to standalone-input rows); rotatable jog scratch + touch.
+**Browse (track ▲/▼)** is done via **keyboard simulation** — the bridge synthesizes
+Up/Down arrow keystrokes (Rekordbox track-list navigation), because the MIDI `Rotary`
+browse function crashes Rekordbox. This needs the bridge binary granted **Accessibility**
+permission (System Settings → Privacy & Security → Accessibility → add
+`mac/beatix-bridge/beatix-bridge`) and Rekordbox focused.
 
-**Known limits / roadmap:**
+**Notes / pending:**
+- Jog scratch needs **Vinyl mode ON** for the deck in Rekordbox.
+- Crossfader needs the Rekordbox channels assigned to it (A/B, not THRU).
+- SHIFT is a momentary modifier (Rekordbox `Shift` function); shifted combos
+  (delete hot cue, master) are a follow-up — they need channel-based shift-variant notes.
 - No waveforms/BPM/art on the phone — it's a control surface, not a player.
-- Crossfader needs the Rekordbox mixer channels assigned to it (A/B, not THRU).
-- **Pad-mode banks** (Hot Cue / Pad FX / Beat Jump / Sampler) — planned via a
-  per-deck page-toggle that swaps the 8-pad block, using per-mode note banks on
-  separate MIDI channels (like the real FLX4).
 
 ---
 

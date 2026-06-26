@@ -66,6 +66,7 @@ class MidiClient(
     fun note(n: Int, on: Boolean) = enqueue("N $n ${if (on) 1 else 0}")
     fun cc(c: Int, v: Int) = enqueue("C $c ${v.coerceIn(0, 127)}")
     fun jog(c: Int, delta: Int) = enqueue("J $c $delta")
+    fun key(keycode: Int, shift: Boolean = false) = enqueue("K $keycode ${if (shift) 1 else 0}")
 
     fun stop() {
         job?.cancel()
@@ -81,6 +82,7 @@ data class DeckIds(
     val loopIn: Int,
     val loopOut: Int,
     val fourBeat: Int,
+    val shift: Int,             // Rekordbox Shift modifier (momentary)
     val pads: List<Int>,        // HOT CUE bank
     val padFx: List<Int>,       // PAD FX bank
     val beatJump: List<Int>,    // BEAT JUMP bank
@@ -100,6 +102,7 @@ data class DeckIds(
 
 val DeckA = DeckIds(
     play = 36, cue = 37, sync = 38, loopIn = 39, loopOut = 40, fourBeat = 41,
+    shift = 32,
     pads = (44..51).toList(), padFx = (0..7).toList(), beatJump = (8..15).toList(), sampler = (16..23).toList(),
     modeHotcue = 24, modePadfx = 25, modeBeatjump = 26, modeSampler = 27,
     tempo = 0, jog = 16, jogTouch = 42, hi = 22, mid = 24, low = 26, fader = 30,
@@ -107,6 +110,7 @@ val DeckA = DeckIds(
 
 val DeckB = DeckIds(
     play = 68, cue = 69, sync = 70, loopIn = 71, loopOut = 72, fourBeat = 73,
+    shift = 34,
     pads = (76..83).toList(), padFx = (52..59).toList(), beatJump = (84..91).toList(), sampler = (92..99).toList(),
     modeHotcue = 28, modePadfx = 29, modeBeatjump = 30, modeSampler = 31,
     tempo = 1, jog = 17, jogTouch = 74, hi = 23, mid = 25, low = 27, fader = 31,
@@ -126,4 +130,8 @@ object Center {
     const val FX_LEVEL = 37
     const val BEAT_L = 106
     const val BEAT_R = 107
+
+    // macOS virtual keycodes for browse (synthesized as keystrokes by the bridge)
+    const val KEY_ARROW_UP = 126
+    const val KEY_ARROW_DOWN = 125
 }
