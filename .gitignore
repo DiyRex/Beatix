@@ -1,0 +1,19 @@
+# Gradle / Android build output
+/build/
+/app/build/
+.gradle/
+.kotlin/
+
+# Local machine config (contains SDK path)
+local.properties
+
+# Compiled Go bridge binary (rebuild from source)
+mac/beatix-bridge/beatix-bridge
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+*.iml
+*.iws
