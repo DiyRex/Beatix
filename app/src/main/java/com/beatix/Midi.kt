@@ -92,8 +92,8 @@ data class DeckIds(
     val modeBeatjump: Int,
     val modeSampler: Int,
     val tempo: Int,
-    val jog: Int,
-    val jogTouch: Int,
+    val jogFwd: Int,    // jog forward pulse -> PitchBendUp
+    val jogBack: Int,   // jog backward pulse -> PitchBendDown
     val hi: Int,
     val mid: Int,
     val low: Int,
@@ -105,7 +105,7 @@ val DeckA = DeckIds(
     shiftCue = 32,
     pads = (44..51).toList(), padFx = (0..7).toList(), beatJump = (8..15).toList(), sampler = (16..23).toList(),
     modeHotcue = 24, modePadfx = 25, modeBeatjump = 26, modeSampler = 27,
-    tempo = 0, jog = 16, jogTouch = 42, hi = 22, mid = 24, low = 26, fader = 30,
+    tempo = 0, jogFwd = 33, jogBack = 35, hi = 22, mid = 24, low = 26, fader = 30,
 )
 
 val DeckB = DeckIds(
@@ -113,7 +113,7 @@ val DeckB = DeckIds(
     shiftCue = 34,
     pads = (76..83).toList(), padFx = (52..59).toList(), beatJump = (84..91).toList(), sampler = (92..99).toList(),
     modeHotcue = 28, modePadfx = 29, modeBeatjump = 30, modeSampler = 31,
-    tempo = 1, jog = 17, jogTouch = 74, hi = 23, mid = 25, low = 27, fader = 31,
+    tempo = 1, jogFwd = 60, jogBack = 61, hi = 23, mid = 25, low = 27, fader = 31,
 )
 
 /** Center / mixer ids. */

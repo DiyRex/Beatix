@@ -91,7 +91,7 @@ private fun Deck(ids: DeckIds, side: Side, midi: MidiClient, modifier: Modifier)
             Box(
                 Modifier.fillMaxWidth().weight(0.26f),
                 contentAlignment = Alignment.Center,
-            ) { Jog(ids.jog, ids.jogTouch, midi) }
+            ) { Jog(ids.jogFwd, ids.jogBack, midi) }
             // pad-mode tabs
             Row(
                 Modifier.fillMaxWidth().weight(0.09f),
@@ -395,7 +395,9 @@ private fun StepButton(label: String, id: Int, delta: Int, midi: MidiClient, mod
 }
 
 @Composable
-private fun Jog(cc: Int, touchNote: Int, midi: MidiClient) {
+private fun Jog(fwdNote: Int, backNote: Int, midi: MidiClient) {
+    // Rekordbox ignores JogRotate from non-Pioneer gear, so each tick of rotation
+    // fires a PitchBend Up/Down pulse (the documented third-party jog workaround).
     Box(
         modifier = Modifier
             .fillMaxHeight()
@@ -403,14 +405,13 @@ private fun Jog(cc: Int, touchNote: Int, midi: MidiClient) {
             .clip(CircleShape)
             .background(Color(0xFF161619))
             .border(3.dp, Amber.copy(alpha = 0.55f), CircleShape)
-            .pointerInput(cc) {
+            .pointerInput(fwdNote) {
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
                     val cx = size.width / 2f
                     val cy = size.height / 2f
                     var lastAngle = atan2(down.position.y - cy, down.position.x - cx)
                     var acc = 0f
-                    midi.note(touchNote, true) // touch platter -> engage scratch
                     while (true) {
                         val ev = awaitPointerEvent()
                         val chg = ev.changes.firstOrNull { it.id == down.id } ?: break
@@ -423,12 +424,11 @@ private fun Jog(cc: Int, touchNote: Int, midi: MidiClient) {
                         if (d < -piF) d += twoPiF
                         lastAngle = a
                         acc += d
-                        val step = 0.18f // radians per emitted tick
-                        while (acc > step) { midi.jog(cc, 1); acc -= step }
-                        while (acc < -step) { midi.jog(cc, -1); acc += step }
+                        val step = 0.14f // radians per emitted pulse
+                        while (acc > step) { midi.note(fwdNote, true); midi.note(fwdNote, false); acc -= step }
+                        while (acc < -step) { midi.note(backNote, true); midi.note(backNote, false); acc += step }
                         chg.consume()
                     }
-                    midi.note(touchNote, false)
                 }
             },
         contentAlignment = Alignment.Center,
