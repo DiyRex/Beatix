@@ -61,6 +61,7 @@ enum class PadMode { HOTCUE, PADFX, BEATJUMP, SAMPLER }
 @Composable
 private fun Deck(ids: DeckIds, side: Side, midi: MidiClient, modifier: Modifier) {
     var mode by remember { mutableStateOf(PadMode.HOTCUE) }
+    var shift by remember { mutableStateOf(false) }
     val bank = when (mode) {
         PadMode.HOTCUE -> ids.pads
         PadMode.PADFX -> ids.padFx
@@ -81,7 +82,7 @@ private fun Deck(ids: DeckIds, side: Side, midi: MidiClient, modifier: Modifier)
                 Modifier.fillMaxWidth().weight(0.13f),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                ShiftButton(ids.shift, midi, Modifier.weight(0.85f).fillMaxHeight())
+                ShiftButton(shift, { shift = it }, Modifier.weight(0.85f).fillMaxHeight())
                 Pad("IN", ids.loopIn, midi, Modifier.weight(0.9f).fillMaxHeight())
                 Pad("OUT", ids.loopOut, midi, Modifier.weight(0.9f).fillMaxHeight())
                 Pad("4BEAT", ids.fourBeat, midi, Modifier.weight(1f).fillMaxHeight())
@@ -121,7 +122,7 @@ private fun Deck(ids: DeckIds, side: Side, midi: MidiClient, modifier: Modifier)
                 Modifier.fillMaxWidth().weight(0.24f),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Pad("CUE", ids.cue, midi, Modifier.weight(1f).fillMaxHeight(), accent = GrayBtn)
+                Pad(if (shift) "↪ START" else "CUE", if (shift) ids.shiftCue else ids.cue, midi, Modifier.weight(1f).fillMaxHeight(), accent = GrayBtn)
                 Pad("PLAY", ids.play, midi, Modifier.weight(1f).fillMaxHeight(), accent = Amber)
             }
         }
@@ -178,29 +179,25 @@ private fun ModeTab(
 }
 
 @Composable
-private fun ShiftButton(note: Int, midi: MidiClient, modifier: Modifier) {
-    var pressed by remember { mutableStateOf(false) }
+private fun ShiftButton(active: Boolean, onToggle: (Boolean) -> Unit, modifier: Modifier) {
     Box(
         modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(if (pressed) Amber else PadIdle)
+            .background(if (active) Amber else PadIdle)
             .border(1.dp, Amber.copy(alpha = 0.45f), RoundedCornerShape(6.dp))
-            .pointerInput(note) {
+            .pointerInput(active) {
                 awaitEachGesture {
                     awaitFirstDown(requireUnconsumed = false)
-                    pressed = true
-                    midi.note(note, true)
+                    onToggle(!active)
                     while (true) {
                         val e = awaitPointerEvent()
                         if (e.changes.none { it.pressed }) break
                     }
-                    pressed = false
-                    midi.note(note, false)
                 }
             },
         contentAlignment = Alignment.Center,
     ) {
-        Text("SHIFT", color = if (pressed) Color.Black else TextCol, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        Text("SHIFT", color = if (active) Color.Black else TextCol, fontSize = 9.sp, fontWeight = FontWeight.Bold)
     }
 }
 
