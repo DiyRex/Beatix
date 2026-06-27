@@ -1,65 +1,16 @@
-// Beatix bridge: receives compact control messages from the Beatix Android app
-// over a TCP socket (forwarded via `adb reverse`) and emits them as MIDI on a
-// virtual CoreMIDI source named "Beatix". Rekordbox sees "Beatix" as a MIDI
-// controller; you MIDI-LEARN each control once.
+// Beatix bridge — receives Beatix app messages over TCP (forwarded by `adb reverse`)
+// and emits MIDI on a port named "Beatix", plus synthesizes browse keystrokes.
+//
+// Platform backends provide midiInit/midiSend/keySynth:
+//   bridge_darwin.go   — CoreMIDI virtual source + CGEvent (macOS, cgo)
+//   bridge_windows.go  — winmm (opens a loopMIDI "Beatix" port) + keybd_event (no cgo)
 //
 // Wire protocol (one message per line, ASCII):
-//
-//	N <note> <0|1>     button: note on (vel 127) / note off       e.g. "N 36 1"
-//	C <cc> <0..127>    slider: absolute control change            e.g. "C 22 96"
-//	J <cc> <delta>     jog/encoder: relative CC (1=+, 127=-)      e.g. "J 16 -3"
-//	P                  heartbeat (ignored)
-//
-// All MIDI is sent on channel 1.
+//   N <note> <0|1>   button note off/on        C <cc> <0..127>  absolute CC
+//   J <cc> <delta>   relative CC (1=+,127=-)    K <keycode> <shift>  keystroke
+//   P                heartbeat (ignored)
+// MIDI is sent on channel 1.
 package main
-
-/*
-#cgo LDFLAGS: -framework CoreMIDI -framework CoreFoundation -framework CoreGraphics
-#include <CoreMIDI/CoreMIDI.h>
-#include <CoreGraphics/CoreGraphics.h>
-
-static MIDIClientRef   gClient;
-static MIDIEndpointRef gSource;
-
-// Synthesize a keystroke to the focused app (e.g. Rekordbox track-list nav).
-// Requires the bridge binary to have Accessibility permission.
-void beatix_key(int keycode, int shift) {
-    CGEventSourceRef src = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
-    CGEventRef down = CGEventCreateKeyboardEvent(src, (CGKeyCode)keycode, true);
-    CGEventRef up   = CGEventCreateKeyboardEvent(src, (CGKeyCode)keycode, false);
-    if (shift) {
-        CGEventSetFlags(down, kCGEventFlagMaskShift);
-        CGEventSetFlags(up, kCGEventFlagMaskShift);
-    }
-    CGEventPost(kCGHIDEventTap, down);
-    CGEventPost(kCGHIDEventTap, up);
-    CFRelease(down);
-    CFRelease(up);
-    CFRelease(src);
-}
-
-// Returns 0 on success, otherwise the OSStatus error code.
-int beatix_midi_init() {
-    CFStringRef name = CFStringCreateWithCString(NULL, "Beatix", kCFStringEncodingUTF8);
-    OSStatus s = MIDIClientCreate(name, NULL, NULL, &gClient);
-    if (s != noErr) { CFRelease(name); return (int)s; }
-    s = MIDISourceCreate(gClient, name, &gSource);
-    CFRelease(name);
-    return (int)s;
-}
-
-void beatix_midi_send(unsigned char a, unsigned char b, unsigned char c) {
-    Byte buffer[64];
-    MIDIPacketList *pktlist = (MIDIPacketList *)buffer;
-    MIDIPacket *cur = MIDIPacketListInit(pktlist);
-    Byte data[3] = { a, b, c };
-    cur = MIDIPacketListAdd(pktlist, sizeof(buffer), cur, (MIDITimeStamp)0, 3, data);
-    if (cur != NULL) {
-        MIDIReceived(gSource, pktlist);
-    }
-}
-*/
-import "C"
 
 import (
 	"bufio"
@@ -75,16 +26,12 @@ import (
 )
 
 const (
-	statusNoteOn = 0x90 // channel 1
-	statusCC     = 0xB0 // channel 1
+	statusNoteOn = 0x90
+	statusCC     = 0xB0
 	velOn        = 127
 	relUp        = 1
 	relDown      = 127
 )
-
-func sendMIDI(a, b, c byte) {
-	C.beatix_midi_send(C.uchar(a), C.uchar(b), C.uchar(c))
-}
 
 func clamp7(v int) byte {
 	if v < 0 {
@@ -96,14 +43,13 @@ func clamp7(v int) byte {
 	return byte(v)
 }
 
-// handleLine parses one protocol line and emits MIDI. verbose logs each message.
 func handleLine(line string, verbose bool) {
 	f := strings.Fields(line)
 	if len(f) == 0 {
 		return
 	}
 	switch f[0] {
-	case "P": // heartbeat
+	case "P":
 		return
 	case "N":
 		if len(f) != 3 {
@@ -118,9 +64,9 @@ func handleLine(line string, verbose bool) {
 		if on != 0 {
 			vel = velOn
 		}
-		sendMIDI(statusNoteOn, clamp7(note), vel)
+		midiSend(statusNoteOn, clamp7(note), vel)
 		if verbose {
-			log.Printf("note %d %s", note, map[bool]string{true: "on", false: "off"}[on != 0])
+			log.Printf("note %d on=%d", note, on)
 		}
 	case "C":
 		if len(f) != 3 {
@@ -131,7 +77,7 @@ func handleLine(line string, verbose bool) {
 		if err1 != nil || err2 != nil {
 			return
 		}
-		sendMIDI(statusCC, clamp7(cc), clamp7(val))
+		midiSend(statusCC, clamp7(cc), clamp7(val))
 		if verbose {
 			log.Printf("cc %d = %d", cc, val)
 		}
@@ -148,11 +94,11 @@ func handleLine(line string, verbose bool) {
 		if delta < 0 {
 			v = relDown
 		}
-		sendMIDI(statusCC, clamp7(cc), v)
+		midiSend(statusCC, clamp7(cc), v)
 		if verbose {
 			log.Printf("jog cc %d delta %d", cc, delta)
 		}
-	case "K": // synthesize a keystroke (e.g. browse arrows): "K <keycode> <shift>"
+	case "K":
 		if len(f) != 3 {
 			return
 		}
@@ -161,7 +107,7 @@ func handleLine(line string, verbose bool) {
 		if err1 != nil || err2 != nil {
 			return
 		}
-		C.beatix_key(C.int(keycode), C.int(shift))
+		keySynth(keycode, shift != 0)
 		if verbose {
 			log.Printf("key %d shift %d", keycode, shift)
 		}
@@ -185,14 +131,14 @@ func main() {
 	selftest := flag.Bool("selftest", false, "init MIDI, send a test note, exit")
 	flag.Parse()
 
-	if rc := int(C.beatix_midi_init()); rc != 0 {
-		log.Fatalf("CoreMIDI init failed (OSStatus %d)", rc)
+	if err := midiInit(); err != nil {
+		log.Fatalf("MIDI init failed: %v", err)
 	}
-	log.Printf("virtual MIDI source 'Beatix' is live")
+	log.Printf("MIDI port 'Beatix' is ready")
 
 	if *selftest {
-		sendMIDI(statusNoteOn, 36, velOn)
-		sendMIDI(statusNoteOn, 36, 0)
+		midiSend(statusNoteOn, 36, velOn)
+		midiSend(statusNoteOn, 36, 0)
 		fmt.Println("SELFTEST OK")
 		return
 	}
@@ -201,9 +147,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("listen %s: %v", *addr, err)
 	}
-	log.Printf("listening on %s  (run: adb reverse tcp:%s tcp:%s)", *addr,
-		portOf(*addr), portOf(*addr))
-	log.Printf("open Rekordbox AFTER this, then MIDI-LEARN the 'Beatix' device")
+	log.Printf("listening on %s  (run: adb reverse tcp:%s tcp:%s)", *addr, portOf(*addr), portOf(*addr))
+	log.Printf("open your DJ app AFTER this, then map/learn the 'Beatix' device")
 
 	go func() {
 		for {

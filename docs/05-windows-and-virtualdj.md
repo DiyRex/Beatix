@@ -22,8 +22,21 @@ Rekordbox does not — so the platter and Beat-FX-blink can be made to work ther
 Run **one DJ app at a time** (don't open Rekordbox and VirtualDJ together).
 
 ## B. Running the whole thing on Windows
-The macOS bridge is Go + CoreMIDI (mac-only). On Windows use the **Python bridge**
-in `python-bridge/` (same protocol, cross-platform). One-time setup:
+
+Two bridge options — pick one. Both need **loopMIDI** + **adb**.
+
+### Option 1 — prebuilt Go .exe (no Python needed) — recommended
+`windows/beatix-bridge.exe` is a standalone binary (cross-compiled; uses winmm for
+MIDI + SendInput for browse keys).
+1. Install **loopMIDI** (free) and create a port named exactly **`Beatix`**.
+2. Install Android **platform-tools** (adb) and add to PATH.
+3. Phone: USB debugging + Install via USB.
+Per session: start loopMIDI → plug phone → double-click **`windows/run-beatix.bat`**
+→ open Rekordbox/VirtualDJ → open the Beatix app.
+(Note: cross-compiled from macOS; if Windows SmartScreen warns, choose "Run anyway".)
+
+### Option 2 — Python bridge (`python-bridge/`)
+Same behavior, if you prefer Python. One-time setup:
 
 1. **Python 3**: install from python.org (tick "Add to PATH").
    Then: `pip install mido python-rtmidi pynput`
