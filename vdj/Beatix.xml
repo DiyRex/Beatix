@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device name="Beatix" author="Beatix" type="MIDI" decks="2">
+  <button note="0x24" name="PLAY1" deck="1" channel="0" />
+  <button note="0x25" name="CUE1" deck="1" channel="0" />
+  <button note="0x26" name="SYNC1" deck="1" channel="0" />
+  <button note="0x27" name="LOOPIN1" deck="1" channel="0" />
+  <button note="0x28" name="LOOPOUT1" deck="1" channel="0" />
+  <button note="0x29" name="LOOP4_1" deck="1" channel="0" />
+  <button note="0x2C" name="HOTCUE1_1" deck="1" channel="0" />
+  <button note="0x2D" name="HOTCUE1_2" deck="1" channel="0" />
+  <button note="0x2E" name="HOTCUE1_3" deck="1" channel="0" />
+  <button note="0x2F" name="HOTCUE1_4" deck="1" channel="0" />
+  <button note="0x30" name="HOTCUE1_5" deck="1" channel="0" />
+  <button note="0x31" name="HOTCUE1_6" deck="1" channel="0" />
+  <button note="0x32" name="HOTCUE1_7" deck="1" channel="0" />
+  <button note="0x33" name="HOTCUE1_8" deck="1" channel="0" />
+  <button note="0x21" name="JOGFWD1" deck="1" channel="0" />
+  <button note="0x23" name="JOGBACK1" deck="1" channel="0" />
+  <slider cc="0x16" name="EQHIGH1" deck="1" channel="0" />
+  <slider cc="0x18" name="EQMID1" deck="1" channel="0" />
+  <slider cc="0x1A" name="EQLOW1" deck="1" channel="0" />
+  <slider cc="0x1E" name="VOLUME1" deck="1" channel="0" />
+  <slider cc="0x00" name="PITCH1" deck="1" channel="0" />
+  <button note="0x44" name="PLAY2" deck="2" channel="0" />
+  <button note="0x45" name="CUE2" deck="2" channel="0" />
+  <button note="0x46" name="SYNC2" deck="2" channel="0" />
+  <button note="0x47" name="LOOPIN2" deck="2" channel="0" />
+  <button note="0x48" name="LOOPOUT2" deck="2" channel="0" />
+  <button note="0x49" name="LOOP4_2" deck="2" channel="0" />
+  <button note="0x4C" name="HOTCUE2_1" deck="2" channel="0" />
+  <button note="0x4D" name="HOTCUE2_2" deck="2" channel="0" />
+  <button note="0x4E" name="HOTCUE2_3" deck="2" channel="0" />
+  <button note="0x4F" name="HOTCUE2_4" deck="2" channel="0" />
+  <button note="0x50" name="HOTCUE2_5" deck="2" channel="0" />
+  <button note="0x51" name="HOTCUE2_6" deck="2" channel="0" />
+  <button note="0x52" name="HOTCUE2_7" deck="2" channel="0" />
+  <button note="0x53" name="HOTCUE2_8" deck="2" channel="0" />
+  <button note="0x3C" name="JOGFWD2" deck="2" channel="0" />
+  <button note="0x3D" name="JOGBACK2" deck="2" channel="0" />
+  <slider cc="0x17" name="EQHIGH2" deck="2" channel="0" />
+  <slider cc="0x19" name="EQMID2" deck="2" channel="0" />
+  <slider cc="0x1B" name="EQLOW2" deck="2" channel="0" />
+  <slider cc="0x1F" name="VOLUME2" deck="2" channel="0" />
+  <slider cc="0x01" name="PITCH2" deck="2" channel="0" />
+  <slider cc="0x20" name="CROSSFADER" channel="0" />
+  <button note="0x64" name="LOADA" channel="0" />
+  <button note="0x65" name="LOADB" channel="0" />
+  <button note="0x69" name="FXON" channel="0" />
+  <slider cc="0x25" name="FXLEVEL" channel="0" />
+</device>

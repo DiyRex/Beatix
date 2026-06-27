@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper device="Beatix" version="850">
+  <map value="PLAY1" action="deck 1 play" />
+  <map value="CUE1" action="deck 1 cue" />
+  <map value="SYNC1" action="deck 1 sync" />
+  <map value="LOOPIN1" action="deck 1 loop_in" />
+  <map value="LOOPOUT1" action="deck 1 loop_out" />
+  <map value="LOOP4_1" action="deck 1 loop 4" />
+  <map value="HOTCUE1_1" action="deck 1 hot_cue 1" />
+  <map value="HOTCUE1_2" action="deck 1 hot_cue 2" />
+  <map value="HOTCUE1_3" action="deck 1 hot_cue 3" />
+  <map value="HOTCUE1_4" action="deck 1 hot_cue 4" />
+  <map value="HOTCUE1_5" action="deck 1 hot_cue 5" />
+  <map value="HOTCUE1_6" action="deck 1 hot_cue 6" />
+  <map value="HOTCUE1_7" action="deck 1 hot_cue 7" />
+  <map value="HOTCUE1_8" action="deck 1 hot_cue 8" />
+  <map value="JOGFWD1" action="deck 1 pitch_bend +0.02" />
+  <map value="JOGBACK1" action="deck 1 pitch_bend -0.02" />
+  <map value="EQHIGH1" action="deck 1 eq_high" />
+  <map value="EQMID1" action="deck 1 eq_mid" />
+  <map value="EQLOW1" action="deck 1 eq_low" />
+  <map value="VOLUME1" action="deck 1 volume" />
+  <map value="PITCH1" action="deck 1 pitch" />
+  <map value="PLAY2" action="deck 2 play" />
+  <map value="CUE2" action="deck 2 cue" />
+  <map value="SYNC2" action="deck 2 sync" />
+  <map value="LOOPIN2" action="deck 2 loop_in" />
+  <map value="LOOPOUT2" action="deck 2 loop_out" />
+  <map value="LOOP4_2" action="deck 2 loop 4" />
+  <map value="HOTCUE2_1" action="deck 2 hot_cue 1" />
+  <map value="HOTCUE2_2" action="deck 2 hot_cue 2" />
+  <map value="HOTCUE2_3" action="deck 2 hot_cue 3" />
+  <map value="HOTCUE2_4" action="deck 2 hot_cue 4" />
+  <map value="HOTCUE2_5" action="deck 2 hot_cue 5" />
+  <map value="HOTCUE2_6" action="deck 2 hot_cue 6" />
+  <map value="HOTCUE2_7" action="deck 2 hot_cue 7" />
+  <map value="HOTCUE2_8" action="deck 2 hot_cue 8" />
+  <map value="JOGFWD2" action="deck 2 pitch_bend +0.02" />
+  <map value="JOGBACK2" action="deck 2 pitch_bend -0.02" />
+  <map value="EQHIGH2" action="deck 2 eq_high" />
+  <map value="EQMID2" action="deck 2 eq_mid" />
+  <map value="EQLOW2" action="deck 2 eq_low" />
+  <map value="VOLUME2" action="deck 2 volume" />
+  <map value="PITCH2" action="deck 2 pitch" />
+  <map value="CROSSFADER" action="crossfader" />
+  <map value="LOADA" action="deck 1 load" />
+  <map value="LOADB" action="deck 2 load" />
+  <map value="FXON" action="effect_active 1" />
+  <map value="FXLEVEL" action="effect_slider 1 1" />
+</mapper>
