@@ -21,3 +21,7 @@ mac/beatix-bridge/beatix-bridge
 # Python
 __pycache__/
 *.pyc
+
+# tray binaries
+mac/beatix-tray/beatix-tray
+mac/beatix-tray/Beatix.app/Contents/MacOS/
