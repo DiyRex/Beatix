@@ -56,3 +56,6 @@ FX1-1On,FX1-1On,Button,9069,,,,,,,,,,Fast,Beat FX On/Off
 FX1-1,FX1-1,KnobSlider,B025,,,,,,,,,,Fast,Beat FX Level
 FX1-1BeatDown,FX1-1BeatDown,Button,906A,,,,,,,,,,Fast,Beat FX <
 FX1-1BeatUp,FX1-1BeatUp,Button,906B,,,,,,,,,,Fast,Beat FX >
+ReloopExit,ReloopExit,Button,,902A,904A,,,,,,,,Fast,Loop Exit/Reloop
+FX1Assign1,FX1Assign1,Button,906D,,,,,,,,,,Fast,Assign Beat FX to Deck 1
+FX1Assign2,FX1Assign2,Button,906E,,,,,,,,,,Fast,Assign Beat FX to Deck 2

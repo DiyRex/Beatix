@@ -82,6 +82,7 @@ data class DeckIds(
     val loopIn: Int,
     val loopOut: Int,
     val fourBeat: Int,
+    val loopExit: Int,          // exit / reloop
     val shiftCue: Int,          // shift + cue = jump to track start
     val pads: List<Int>,        // HOT CUE bank
     val padFx: List<Int>,       // PAD FX bank
@@ -102,7 +103,7 @@ data class DeckIds(
 
 val DeckA = DeckIds(
     play = 36, cue = 37, sync = 38, loopIn = 39, loopOut = 40, fourBeat = 41,
-    shiftCue = 32,
+    loopExit = 42, shiftCue = 32,
     pads = (44..51).toList(), padFx = (0..7).toList(), beatJump = (8..15).toList(), sampler = (16..23).toList(),
     modeHotcue = 24, modePadfx = 25, modeBeatjump = 26, modeSampler = 27,
     tempo = 0, jogFwd = 33, jogBack = 35, hi = 22, mid = 24, low = 26, fader = 30,
@@ -110,7 +111,7 @@ val DeckA = DeckIds(
 
 val DeckB = DeckIds(
     play = 68, cue = 69, sync = 70, loopIn = 71, loopOut = 72, fourBeat = 73,
-    shiftCue = 34,
+    loopExit = 74, shiftCue = 34,
     pads = (76..83).toList(), padFx = (52..59).toList(), beatJump = (84..91).toList(), sampler = (92..99).toList(),
     modeHotcue = 28, modePadfx = 29, modeBeatjump = 30, modeSampler = 31,
     tempo = 1, jogFwd = 60, jogBack = 61, hi = 23, mid = 25, low = 27, fader = 31,
@@ -128,6 +129,8 @@ object Center {
     const val FX_ONOFF = 105
     const val FX_SELECT = 108
     const val FX_LEVEL = 37
+    const val FX_ASSIGN1 = 109
+    const val FX_ASSIGN2 = 110
     const val BEAT_L = 106
     const val BEAT_R = 107
 

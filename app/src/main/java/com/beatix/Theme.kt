@@ -5,15 +5,20 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Pioneer-style dark console with amber accents.
-val Bg = Color(0xFF0B0B0D)
-val Panel = Color(0xFF18181C)
-val PanelDark = Color(0xFF111114)
+// Pioneer-style dark console with amber accents + soft gradients.
+val Bg = Color(0xFF09090B)
+val Panel = Color(0xFF161619)
+val PanelHi = Color(0xFF202027)
+val PanelDark = Color(0xFF0C0C0F)
+val PadTop = Color(0xFF2C2C34)
+val PadBot = Color(0xFF191920)
 val Amber = Color(0xFFF5A623)
-val AmberDim = Color(0xFF4A3A14)
-val PadIdle = Color(0xFF26262B)
-val TextCol = Color(0xFFE6E6E6)
-val GrayBtn = Color(0xFFB9B9BE)
+val AmberHi = Color(0xFFFFC558)
+val AmberLo = Color(0xFFC9810F)
+val Edge = Color(0xFF34343C)
+val TextCol = Color(0xFFEDEDF0)
+val TextDim = Color(0xFF8C8C94)
+val GrayBtn = Color(0xFFC2C2C8)
 
 @Composable
 fun BeatixTheme(content: @Composable () -> Unit) {
