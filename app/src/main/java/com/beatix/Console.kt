@@ -141,10 +141,10 @@ private fun Mixer(midi: MidiClient, modifier: Modifier) {
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Row(Modifier.fillMaxWidth().weight(0.12f), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            Pad("LOAD\nA", Center.LOAD_A, midi, Modifier.weight(1.2f).fillMaxHeight())
+            Pad("LOAD A", Center.LOAD_A, midi, Modifier.weight(1.2f).fillMaxHeight())
             KeyButton("▲", Center.KEY_ARROW_UP, false, midi, Modifier.weight(0.7f).fillMaxHeight())
             KeyButton("▼", Center.KEY_ARROW_DOWN, false, midi, Modifier.weight(0.7f).fillMaxHeight())
-            Pad("LOAD\nB", Center.LOAD_B, midi, Modifier.weight(1.2f).fillMaxHeight())
+            Pad("LOAD B", Center.LOAD_B, midi, Modifier.weight(1.2f).fillMaxHeight())
         }
         Row(Modifier.fillMaxWidth().weight(0.74f), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             ChannelStrip("CH 1", DeckA, midi, Modifier.weight(1f))
