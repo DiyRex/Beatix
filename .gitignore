@@ -17,3 +17,7 @@ mac/beatix-bridge/beatix-bridge
 .idea/
 *.iml
 *.iws
+
+# Python
+__pycache__/
+*.pyc
