@@ -1,0 +1,58 @@
+@file,1,Beatix
+#name,function,type,input,deck1,deck2,deck3,deck4,output,deck1,deck2,deck3,deck4,option,comment
+PlayPause,PlayPause,Button,,9024,9044,,,,,,,,Fast,Play/Pause
+Cue,Cue,Button,,9025,9045,,,,,,,,Fast,Cue
+Sync,Sync,Button,,9026,9046,,,,,,,,Fast,Beat Sync
+LoopIn,LoopIn,Button,,9027,9047,,,,,,,,Fast,Loop In
+LoopOut,LoopOut,Button,,9028,9048,,,,,,,,Fast,Loop Out
+BeatLoop4,BeatLoop4,Button,,9029,9049,,,,,,,,Fast,4 Beat Loop
+JumpToTrackStart,Cue+Shift,Button,,9020,9022,,,,,,,,Fast,Shift+Cue jump to start
+PitchBendUp,PitchBendUp,Button,,9021,903C,,,,,,,,Fast,Jog fwd = pitch bend up
+PitchBendDown,PitchBendDown,Button,,9023,903D,,,,,,,,Fast,Jog back = pitch bend down
+PAD1_HotCue,PAD1_HotCue,Pad,,902C,904C,,,,,,,,Fast,Hot Cue 1
+PAD1_PadFx1,PAD1_PadMode2,Pad,,9000,9034,,,,,,,,Fast,Pad FX 1
+PAD1_BeatJump,PAD1_PadMode3,Pad,,9008,9054,,,,,,,,Fast,Beat Jump 1
+PAD1_Sampler,PAD1_PadMode4,Pad,,9010,905C,,,,,,,,Fast,Sampler 1
+PAD2_HotCue,PAD2_HotCue,Pad,,902D,904D,,,,,,,,Fast,Hot Cue 2
+PAD2_PadFx1,PAD2_PadMode2,Pad,,9001,9035,,,,,,,,Fast,Pad FX 2
+PAD2_BeatJump,PAD2_PadMode3,Pad,,9009,9055,,,,,,,,Fast,Beat Jump 2
+PAD2_Sampler,PAD2_PadMode4,Pad,,9011,905D,,,,,,,,Fast,Sampler 2
+PAD3_HotCue,PAD3_HotCue,Pad,,902E,904E,,,,,,,,Fast,Hot Cue 3
+PAD3_PadFx1,PAD3_PadMode2,Pad,,9002,9036,,,,,,,,Fast,Pad FX 3
+PAD3_BeatJump,PAD3_PadMode3,Pad,,900A,9056,,,,,,,,Fast,Beat Jump 3
+PAD3_Sampler,PAD3_PadMode4,Pad,,9012,905E,,,,,,,,Fast,Sampler 3
+PAD4_HotCue,PAD4_HotCue,Pad,,902F,904F,,,,,,,,Fast,Hot Cue 4
+PAD4_PadFx1,PAD4_PadMode2,Pad,,9003,9037,,,,,,,,Fast,Pad FX 4
+PAD4_BeatJump,PAD4_PadMode3,Pad,,900B,9057,,,,,,,,Fast,Beat Jump 4
+PAD4_Sampler,PAD4_PadMode4,Pad,,9013,905F,,,,,,,,Fast,Sampler 4
+PAD5_HotCue,PAD5_HotCue,Pad,,9030,9050,,,,,,,,Fast,Hot Cue 5
+PAD5_PadFx1,PAD5_PadMode2,Pad,,9004,9038,,,,,,,,Fast,Pad FX 5
+PAD5_BeatJump,PAD5_PadMode3,Pad,,900C,9058,,,,,,,,Fast,Beat Jump 5
+PAD5_Sampler,PAD5_PadMode4,Pad,,9014,9060,,,,,,,,Fast,Sampler 5
+PAD6_HotCue,PAD6_HotCue,Pad,,9031,9051,,,,,,,,Fast,Hot Cue 6
+PAD6_PadFx1,PAD6_PadMode2,Pad,,9005,9039,,,,,,,,Fast,Pad FX 6
+PAD6_BeatJump,PAD6_PadMode3,Pad,,900D,9059,,,,,,,,Fast,Beat Jump 6
+PAD6_Sampler,PAD6_PadMode4,Pad,,9015,9061,,,,,,,,Fast,Sampler 6
+PAD7_HotCue,PAD7_HotCue,Pad,,9032,9052,,,,,,,,Fast,Hot Cue 7
+PAD7_PadFx1,PAD7_PadMode2,Pad,,9006,903A,,,,,,,,Fast,Pad FX 7
+PAD7_BeatJump,PAD7_PadMode3,Pad,,900E,905A,,,,,,,,Fast,Beat Jump 7
+PAD7_Sampler,PAD7_PadMode4,Pad,,9016,9062,,,,,,,,Fast,Sampler 7
+PAD8_HotCue,PAD8_HotCue,Pad,,9033,9053,,,,,,,,Fast,Hot Cue 8
+PAD8_PadFx1,PAD8_PadMode2,Pad,,9007,903B,,,,,,,,Fast,Pad FX 8
+PAD8_BeatJump,PAD8_PadMode3,Pad,,900F,905B,,,,,,,,Fast,Beat Jump 8
+PAD8_Sampler,PAD8_PadMode4,Pad,,9017,9063,,,,,,,,Fast,Sampler 8
+HotCue,HotCueMode,Button,,9018,901C,,,,,,,,Fast,HOT CUE mode
+PadFx1,PadFx1,Button,,9019,901D,,,,,,,,Fast,PAD FX mode
+BeatJump,BeatJumpMode,Button,,901A,901E,,,,,,,,Fast,BEAT JUMP mode
+Sampler,SamplerMode,Button,,901B,901F,,,,,,,,Fast,SAMPLER mode
+EQHigh,EQHigh,KnobSlider,,B016,B017,,,,,,,,Fast,EQ High
+EQMid,EQMid,KnobSlider,,B018,B019,,,,,,,,Fast,EQ Mid
+EQLow,EQLow,KnobSlider,,B01A,B01B,,,,,,,,Fast,EQ Low
+ChannelFader,ChannelFader,KnobSlider,,B01E,B01F,,,,,,,,Fast,Channel Fader
+TempoSlider,TempoSlider,KnobSlider,,B000,B001,,,,,,,,Fast,Tempo
+CrossFader,CrossFader,KnobSlider,B020,,,,,,,,,,Fast,Crossfader
+Load,Load,Button,,9064,9065,,,,,,,,Fast,Load to Deck
+FX1-1On,FX1-1On,Button,9069,,,,,,,,,,Fast,Beat FX On/Off
+FX1-1,FX1-1,KnobSlider,B025,,,,,,,,,,Fast,Beat FX Level
+FX1-1BeatDown,FX1-1BeatDown,Button,906A,,,,,,,,,,Fast,Beat FX <
+FX1-1BeatUp,FX1-1BeatUp,Button,906B,,,,,,,,,,Fast,Beat FX >

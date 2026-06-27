@@ -53,9 +53,19 @@ Beatix/
 │   │   ├── main.go
 │   │   └── beatix-bridge         # built binary
 │   └── beatix-daemon.sh          # plug-and-play loop (keeps bridge up + auto adb reverse)
-├── run-beatix.command            # double-click launcher (manual alternative to the daemon)
+├── python-bridge/                # cross-platform bridge (Windows/Linux/mac)
+│   ├── beatix_bridge.py          # socket -> MIDI (+ keyboard synth); uses loopMIDI on Windows
+│   └── run-beatix.bat            # Windows launcher
+├── rekordbox/Beatix.midi.csv     # importable Rekordbox mapping (56 controls)
+├── vdj/Beatix.xml                # importable VirtualDJ definition
+├── vdj/Beatix-mapper.xml         # importable VirtualDJ mapper
+├── run-beatix.command            # macOS double-click launcher (manual alt to daemon)
 └── docs/                         # design + findings + guides (see docs/00-overview.md)
 ```
+
+**Importable mappings:** `rekordbox/Beatix.midi.csv` and `vdj/Beatix.xml` +
+`vdj/Beatix-mapper.xml` — see `docs/06-importable-mappings.md` for where to copy
+them. Windows + VirtualDJ setup: `docs/05-windows-and-virtualdj.md`.
 
 Plus, outside the repo:
 - `~/Library/LaunchAgents/com.beatix.plist` — the plug-and-play service.
