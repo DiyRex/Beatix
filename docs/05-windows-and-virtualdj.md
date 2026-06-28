@@ -60,3 +60,16 @@ Notes:
 - Browse arrows use keyboard synthesis (pynput) — works on Windows without extra
   permission (macOS needs Accessibility; Windows does not).
 - The Beatix APK is identical on any OS — only the Mac-side bridge differs.
+
+## C. Tray app (menu-bar / system-tray controller)
+A one-click controller that runs + monitors the bridge, auto-reapplies `adb reverse`,
+and shows status (Bridge / Phone). Replaces the manual launcher/daemon.
+
+- macOS: `mac/beatix-tray/Beatix.app` (build with `mac/build-tray.sh`). Runs in the
+  menu bar (amber jog icon). Add to System Settings → Login Items to auto-start.
+- Windows: `windows/beatix-tray.exe` — double-click; it sits in the system tray and
+  spawns `beatix-bridge.exe` (keep both in the same folder). Still needs loopMIDI
+  (port "Beatix") + adb on PATH. For auto-start, drop a shortcut in
+  `shell:startup`.
+
+Menu: status line, Reconnect USB, Restart bridge, Stop/Start bridge, Quit.
