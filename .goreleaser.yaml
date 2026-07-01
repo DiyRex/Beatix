@@ -1,0 +1,57 @@
+version: 2
+project_name: beatix
+
+builds:
+  - id: bridge
+    main: ./cmd/beatix-bridge
+    binary: beatix-bridge
+    env: [CGO_ENABLED=1]
+    goos: [darwin, windows]
+    goarch: [amd64, arm64]
+    ignore:
+      - { goos: darwin, goarch: amd64 }   # arm64-only mac build for now
+      - { goos: windows, goarch: arm64 }
+    flags: [-trimpath]
+    overrides:
+      - goos: windows
+        goarch: amd64
+        env: [CGO_ENABLED=0]              # Windows bridge is pure syscall (winmm)
+
+  - id: tray
+    main: ./cmd/beatix-tray
+    binary: beatix-tray
+    env: [CGO_ENABLED=1]
+    goos: [darwin, windows]
+    goarch: [amd64, arm64]
+    ignore:
+      - { goos: darwin, goarch: amd64 }
+      - { goos: windows, goarch: arm64 }
+    flags: [-trimpath]
+    overrides:
+      - goos: windows
+        goarch: amd64
+        env: [CGO_ENABLED=0]
+        ldflags: ["-H windowsgui"]        # windowless system-tray on Windows
+
+archives:
+  - id: beatix
+    ids: [bridge, tray]
+    name_template: "beatix_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  github:
+    owner: DiyRex
+    name: Beatix
+  name_template: "Beatix {{ .Tag }}"
+  extra_files:
+    - glob: ./beatix.apk                  # Android app (built in the workflow)
+    - glob: ./rekordbox/Beatix.midi.csv   # importable Rekordbox mapping
+    - glob: ./vdj/Beatix.xml
+    - glob: ./vdj/Beatix-mapper.xml

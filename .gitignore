@@ -25,3 +25,6 @@ __pycache__/
 # tray binaries
 mac/beatix-tray/beatix-tray
 mac/beatix-tray/Beatix.app/Contents/MacOS/
+
+# goreleaser
+dist/
