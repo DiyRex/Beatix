@@ -23,6 +23,8 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/grandcat/zeroconf"
 )
 
 const (
@@ -149,6 +151,14 @@ func main() {
 	}
 	log.Printf("listening on %s  (run: adb reverse tcp:%s tcp:%s)", *addr, portOf(*addr), portOf(*addr))
 	log.Printf("open your DJ app AFTER this, then map/learn the 'Beatix' device")
+
+	// advertise via mDNS/Bonjour so the phone app can auto-discover us on Wi-Fi
+	if zc, err := zeroconf.Register("Beatix", "_beatix._tcp", "local.", 5557, []string{"app=beatix"}, nil); err == nil {
+		defer zc.Shutdown()
+		log.Printf("mDNS: advertising _beatix._tcp (Wi-Fi auto-discovery on)")
+	} else {
+		log.Printf("mDNS register failed: %v", err)
+	}
 
 	go func() {
 		for {

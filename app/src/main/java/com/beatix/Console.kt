@@ -478,9 +478,10 @@ private fun SettingsOverlay(midi: MidiClient, onHostChange: (String) -> Unit, on
                 if (connected) "● Connected  —  $host" else "○ Not connected  —  trying $host",
                 color = if (connected) Amber else TextDim, fontSize = 12.sp,
             )
+            SettingsBtn("◎  Auto-discover (Wi-Fi)", false, Modifier.fillMaxWidth()) { onHostChange("auto") }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 SettingsBtn("ADB / USB cable", host == "127.0.0.1", Modifier.weight(1f)) { onHostChange("127.0.0.1") }
-                SettingsBtn("USB-tether / Wi-Fi", host != "127.0.0.1", Modifier.weight(1f)) { if (ip.isNotBlank()) onHostChange(ip.trim()) }
+                SettingsBtn("Manual IP below", false, Modifier.weight(1f)) { if (ip.isNotBlank()) onHostChange(ip.trim()) }
             }
             OutlinedTextField(
                 value = ip, onValueChange = { ip = it },

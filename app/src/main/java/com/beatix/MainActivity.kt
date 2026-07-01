@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 class MainActivity : ComponentActivity() {
 
     private lateinit var midi: MidiClient
+    private lateinit var discovery: NsdDiscovery
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,13 +40,22 @@ class MainActivity : ComponentActivity() {
         }
 
         val prefs = getSharedPreferences("beatix", MODE_PRIVATE)
-        midi = MidiClient(prefs.getString("host", "127.0.0.1") ?: "127.0.0.1")
+        discovery = NsdDiscovery(this)
+        val saved = prefs.getString("host", "127.0.0.1") ?: "127.0.0.1"
+        midi = MidiClient(if (saved == "auto") "127.0.0.1" else saved)
         midi.start()
+        if (saved == "auto") discovery.start { midi.setHost(it) }
         setContent {
             BeatixTheme {
                 ConsoleScreen(midi) { newHost ->
-                    prefs.edit().putString("host", newHost).apply()
-                    midi.setHost(newHost)
+                    if (newHost == "auto") {
+                        prefs.edit().putString("host", "auto").apply()
+                        discovery.start { midi.setHost(it) }
+                    } else {
+                        prefs.edit().putString("host", newHost).apply()
+                        discovery.stop()
+                        midi.setHost(newHost)
+                    }
                 }
             }
         }
@@ -53,6 +63,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        discovery.stop()
         midi.stop()
     }
 }
