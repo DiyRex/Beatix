@@ -12,12 +12,52 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"fyne.io/systray"
 )
+
+// On macOS the bridge injects keystrokes (CGEvent), which needs an Accessibility
+// grant. macOS ties that grant to the process's *responsible* process — so a
+// bridge spawned as a child of the tray inherits the TRAY's identity and the
+// grant never applies. Running the bridge as its own launchd agent makes it its
+// own responsible process, so the (persistent, cert-signed) grant sticks across
+// restarts and rebuilds. Windows has no such permission, so it keeps the simple
+// direct-spawn model below.
+const label = "com.beatix.bridge"
+
+func svcTarget() string { return "gui/" + strconv.Itoa(os.Getuid()) + "/" + label }
+
+func plistPath() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, "Library", "LaunchAgents", label+".plist")
+}
+
+// installAgent writes/refreshes the LaunchAgent and loads it (idempotent — a
+// no-op if already loaded/running, so it never disturbs a live bridge).
+func installAgent() {
+	p := plistPath()
+	content := `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>` + label + `</string>
+  <key>ProgramArguments</key>
+  <array><string>` + bridgePath() + `</string><string>-v</string></array>
+  <key>KeepAlive</key><true/>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/tmp/beatix-bridge.log</string>
+  <key>StandardErrorPath</key><string>/tmp/beatix-bridge.log</string>
+</dict>
+</plist>
+`
+	_ = os.MkdirAll(filepath.Dir(p), 0755)
+	_ = os.WriteFile(p, []byte(content), 0644)
+	_ = exec.Command("launchctl", "bootstrap", "gui/"+strconv.Itoa(os.Getuid()), p).Run() // errors if already loaded — fine
+}
 
 const port = "5557"
 
@@ -56,7 +96,29 @@ func adbBin() string {
 	return "/opt/homebrew/bin/adb"
 }
 
+// startBridge ensures the bridge is running. macOS: load + start the launchd
+// agent (won't restart a live one). Other OSes: spawn as a child.
 func startBridge() {
+	if runtime.GOOS == "darwin" {
+		installAgent()
+		_ = exec.Command("launchctl", "kickstart", svcTarget()).Run()
+		return
+	}
+	spawnBridge()
+}
+
+func restartBridge() {
+	if runtime.GOOS == "darwin" {
+		installAgent()
+		_ = exec.Command("launchctl", "kickstart", "-k", svcTarget()).Run()
+		return
+	}
+	stopBridge()
+	time.Sleep(300 * time.Millisecond)
+	spawnBridge()
+}
+
+func spawnBridge() {
 	mu.Lock()
 	defer mu.Unlock()
 	wantRunning = true
@@ -82,6 +144,10 @@ func startBridge() {
 }
 
 func stopBridge() {
+	if runtime.GOOS == "darwin" {
+		_ = exec.Command("launchctl", "bootout", svcTarget()).Run() // unload so KeepAlive won't respawn
+		return
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	wantRunning = false
@@ -92,6 +158,10 @@ func stopBridge() {
 }
 
 func bridgeUp() bool {
+	if runtime.GOOS == "darwin" {
+		out, _ := exec.Command("pgrep", "-f", "beatix-bridge -v").Output()
+		return len(strings.TrimSpace(string(out))) > 0
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	return cmd != nil
@@ -193,9 +263,7 @@ func onReady() {
 			case <-mReconnect.ClickedCh:
 				reverse()
 			case <-mRestart.ClickedCh:
-				stopBridge()
-				time.Sleep(300 * time.Millisecond)
-				startBridge()
+				restartBridge()
 				reverse()
 				mToggle.SetTitle("Stop bridge")
 			case <-mToggle.ClickedCh:
@@ -217,12 +285,14 @@ func onReady() {
 		t := time.NewTicker(2 * time.Second)
 		defer t.Stop()
 		for range t.C {
-			mu.Lock()
-			want := wantRunning
-			alive := cmd != nil
-			mu.Unlock()
-			if want && !alive { // auto-respawn if it died unexpectedly
-				startBridge()
+			if runtime.GOOS != "darwin" { // macOS: launchd KeepAlive respawns for us
+				mu.Lock()
+				want := wantRunning
+				alive := cmd != nil
+				mu.Unlock()
+				if want && !alive {
+					startBridge()
+				}
 			}
 			if phoneUp() {
 				reverse() // ADB mode: auto-heal the USB forward
@@ -241,6 +311,12 @@ func onReady() {
 	}()
 }
 
-func onExit() { stopBridge() }
+func onExit() {
+	// On macOS the bridge lives independently under launchd — quitting the tray
+	// must NOT kill it (that's the whole point). Use "Stop bridge" to stop it.
+	if runtime.GOOS != "darwin" {
+		stopBridge()
+	}
+}
 
 func main() { systray.Run(onReady, onExit) }
