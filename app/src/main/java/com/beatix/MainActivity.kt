@@ -42,15 +42,22 @@ class MainActivity : ComponentActivity() {
         val prefs = getSharedPreferences("beatix", MODE_PRIVATE)
         discovery = NsdDiscovery(this)
         val saved = prefs.getString("host", "127.0.0.1") ?: "127.0.0.1"
-        midi = MidiClient(if (saved == "auto") "127.0.0.1" else saved)
+        val lastIp = prefs.getString("lastIp", "127.0.0.1") ?: "127.0.0.1"
+        // Auto mode: connect to the last-known DHCP IP INSTANTLY, and let mDNS
+        // run in the background only to correct it if the router changed the IP.
+        val onFound: (String) -> Unit = { ip ->
+            prefs.edit().putString("lastIp", ip).apply()
+            if (ip != midi.host) midi.setHost(ip)
+        }
+        midi = MidiClient(if (saved == "auto") lastIp else saved)
         midi.start()
-        if (saved == "auto") discovery.start { midi.setHost(it) }
+        if (saved == "auto") discovery.start(onFound)
         setContent {
             BeatixTheme {
                 ConsoleScreen(midi) { newHost ->
                     if (newHost == "auto") {
                         prefs.edit().putString("host", "auto").apply()
-                        discovery.start { midi.setHost(it) }
+                        discovery.start(onFound)
                     } else {
                         prefs.edit().putString("host", newHost).apply()
                         discovery.stop()
