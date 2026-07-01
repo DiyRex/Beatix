@@ -131,6 +131,46 @@ func iconPNG() []byte {
 	return b.Bytes()
 }
 
+// appConn reports whether the phone app has an established socket to the bridge,
+// and which method it's using (inferred from the peer address).
+func appConn() (bool, string) {
+	var out []byte
+	if runtime.GOOS == "windows" {
+		out, _ = exec.Command("netstat", "-n", "-p", "tcp").Output()
+	} else {
+		out, _ = exec.Command("lsof", "-nP", "-iTCP:"+port, "-sTCP:ESTABLISHED").Output()
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		if runtime.GOOS == "windows" {
+			if !strings.Contains(line, ":"+port) || !strings.Contains(line, "ESTABLISHED") {
+				continue
+			}
+			f := strings.Fields(line)
+			if len(f) >= 3 {
+				return true, method(f[2])
+			}
+		} else {
+			i := strings.Index(line, "->")
+			if i < 0 {
+				continue
+			}
+			peer := strings.TrimSpace(line[i+2:])
+			if j := strings.Index(peer, " "); j >= 0 {
+				peer = peer[:j]
+			}
+			return true, method(peer)
+		}
+	}
+	return false, ""
+}
+
+func method(peer string) string {
+	if strings.Contains(peer, "127.0.0.1") || strings.Contains(peer, "::1") {
+		return "ADB/USB"
+	}
+	return "Wi-Fi"
+}
+
 func onReady() {
 	systray.SetIcon(iconPNG())
 	systray.SetTooltip("Beatix DJ bridge")
@@ -184,18 +224,19 @@ func onReady() {
 			if want && !alive { // auto-respawn if it died unexpectedly
 				startBridge()
 			}
-			phone := phoneUp()
-			if phone {
-				reverse()
+			if phoneUp() {
+				reverse() // ADB mode: auto-heal the USB forward
 			}
-			b, p := "stopped", "no phone"
+			b := "stopped"
 			if bridgeUp() {
 				b = "running"
 			}
-			if phone {
-				p = "connected"
+			connected, via := appConn()
+			st := "waiting for app…"
+			if connected {
+				st = "app connected · " + via
 			}
-			mStatus.SetTitle("Bridge: " + b + "  ·  Phone: " + p)
+			mStatus.SetTitle("Bridge " + b + "  ·  " + st)
 		}
 	}()
 }
