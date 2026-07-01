@@ -11,7 +11,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : ComponentActivity() {
 
-    private val midi = MidiClient()
+    private lateinit var midi: MidiClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +38,15 @@ class MainActivity : ComponentActivity() {
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
+        val prefs = getSharedPreferences("beatix", MODE_PRIVATE)
+        midi = MidiClient(prefs.getString("host", "127.0.0.1") ?: "127.0.0.1")
         midi.start()
         setContent {
             BeatixTheme {
-                ConsoleScreen(midi)
+                ConsoleScreen(midi) { newHost ->
+                    prefs.edit().putString("host", newHost).apply()
+                    midi.setHost(newHost)
+                }
             }
         }
     }

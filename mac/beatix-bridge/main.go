@@ -126,7 +126,7 @@ func handleConn(conn net.Conn, verbose bool) {
 }
 
 func main() {
-	addr := flag.String("addr", "127.0.0.1:5557", "TCP listen address")
+	addr := flag.String("addr", "0.0.0.0:5557", "TCP listen address")
 	verbose := flag.Bool("v", false, "log every MIDI message")
 	selftest := flag.Bool("selftest", false, "init MIDI, send a test note, exit")
 	flag.Parse()

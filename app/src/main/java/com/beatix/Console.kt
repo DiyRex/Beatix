@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,17 +53,30 @@ enum class PadMode { HOTCUE, PADFX, BEATJUMP, SAMPLER }
 private val panelBrush = Brush.verticalGradient(listOf(PanelHi, Panel))
 
 @Composable
-fun ConsoleScreen(midi: MidiClient) {
-    Row(
-        Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF111116), Bg)))
-            .padding(5.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Deck(DeckA, Side.LEFT, midi, Modifier.weight(1f))
-        Mixer(midi, Modifier.weight(1.05f))
-        Deck(DeckB, Side.RIGHT, midi, Modifier.weight(1f))
+fun ConsoleScreen(midi: MidiClient, onHostChange: (String) -> Unit) {
+    var showSettings by remember { mutableStateOf(false) }
+    var taps by remember { mutableStateOf(0) }
+    var lastTap by remember { mutableStateOf(0L) }
+    // secret gesture: 5 quick taps on the BEAT FX label opens the settings page
+    val onSecret: () -> Unit = {
+        val now = System.currentTimeMillis()
+        taps = if (now - lastTap < 900L) taps + 1 else 1
+        lastTap = now
+        if (taps >= 5) { taps = 0; showSettings = true }
+    }
+    Box(Modifier.fillMaxSize()) {
+        Row(
+            Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(Color(0xFF111116), Bg)))
+                .padding(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Deck(DeckA, Side.LEFT, midi, Modifier.weight(1f))
+            Mixer(midi, onSecret, Modifier.weight(1.05f))
+            Deck(DeckB, Side.RIGHT, midi, Modifier.weight(1f))
+        }
+        if (showSettings) SettingsOverlay(midi, onHostChange) { showSettings = false }
     }
 }
 
@@ -135,7 +152,7 @@ private fun Deck(ids: DeckIds, side: Side, midi: MidiClient, modifier: Modifier)
 }
 
 @Composable
-private fun Mixer(midi: MidiClient, modifier: Modifier) {
+private fun Mixer(midi: MidiClient, onSecret: () -> Unit, modifier: Modifier) {
     Column(
         modifier.fillMaxHeight().clip(RoundedCornerShape(12.dp)).background(panelBrush).padding(6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -148,7 +165,7 @@ private fun Mixer(midi: MidiClient, modifier: Modifier) {
         }
         Row(Modifier.fillMaxWidth().weight(0.74f), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             ChannelStrip("CH 1", DeckA, midi, Modifier.weight(1f))
-            FxColumn(midi, Modifier.weight(0.95f))
+            FxColumn(midi, onSecret, Modifier.weight(0.95f))
             ChannelStrip("CH 2", DeckB, midi, Modifier.weight(1f))
         }
         Column(Modifier.fillMaxWidth().weight(0.13f), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -185,14 +202,17 @@ private fun EqFader(label: String, cc: Int, midi: MidiClient, modifier: Modifier
 }
 
 @Composable
-private fun FxColumn(midi: MidiClient, modifier: Modifier) {
+private fun FxColumn(midi: MidiClient, onSecret: () -> Unit, modifier: Modifier) {
     Column(
         modifier.fillMaxHeight().clip(RoundedCornerShape(10.dp))
             .background(Brush.verticalGradient(listOf(Color(0xFF1D1D24), PanelDark))).padding(6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("BEAT FX", color = Amber, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        Text(
+            "BEAT FX", color = Amber, fontSize = 9.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.pointerInput(Unit) { detectTapGestures { onSecret() } },
+        )
         Pad("ON", Center.FX_ONOFF, midi, Modifier.fillMaxWidth().weight(1.2f), accent = Amber)
         Row(Modifier.fillMaxWidth().weight(0.9f), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             Pad("→ 1", Center.FX_ASSIGN1, midi, Modifier.weight(1f).fillMaxHeight())
@@ -421,6 +441,60 @@ private fun HFader(cc: Int, midi: MidiClient, initial: Int, modifier: Modifier) 
             val tw = 20f; val thh = h * 0.9f
             drawRoundRect(Color.Black.copy(alpha = 0.4f), topLeft = Offset(thumbX - tw / 2 + 1, cy - thh / 2 + 2), size = Size(tw, thh), cornerRadius = CornerRadius(5f, 5f))
             drawRoundRect(Brush.verticalGradient(listOf(AmberHi, AmberLo)), topLeft = Offset(thumbX - tw / 2, cy - thh / 2), size = Size(tw, thh), cornerRadius = CornerRadius(5f, 5f))
+        }
+    }
+}
+
+@Composable
+private fun SettingsBtn(label: String, active: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (active) Amber else PadTop,
+            contentColor = if (active) Color.Black else TextCol,
+        ),
+    ) { Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold) }
+}
+
+@Composable
+private fun SettingsOverlay(midi: MidiClient, onHostChange: (String) -> Unit, onClose: () -> Unit) {
+    var ip by remember { mutableStateOf(if (midi.host == "127.0.0.1") "" else midi.host) }
+    val connected = midi.connected.value
+    val host = midi.host
+    Box(
+        Modifier.fillMaxSize().background(Color(0xE6000000))
+            .pointerInput(Unit) { detectTapGestures { } },
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            Modifier.fillMaxWidth(0.62f).clip(RoundedCornerShape(14.dp))
+                .background(Brush.verticalGradient(listOf(PanelHi, Panel))).padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("BEATIX · CONNECTION", color = Amber, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Text(
+                if (connected) "● Connected  —  $host" else "○ Not connected  —  trying $host",
+                color = if (connected) Amber else TextDim, fontSize = 12.sp,
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SettingsBtn("ADB / USB cable", host == "127.0.0.1", Modifier.weight(1f)) { onHostChange("127.0.0.1") }
+                SettingsBtn("USB-tether / Wi-Fi", host != "127.0.0.1", Modifier.weight(1f)) { if (ip.isNotBlank()) onHostChange(ip.trim()) }
+            }
+            OutlinedTextField(
+                value = ip, onValueChange = { ip = it },
+                label = { Text("Mac IP  (USB-tether or Wi-Fi)") },
+                singleLine = true, modifier = Modifier.fillMaxWidth(),
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SettingsBtn("Connect", false, Modifier.weight(1f)) { if (ip.isNotBlank()) onHostChange(ip.trim()) }
+                SettingsBtn("Close", false, Modifier.weight(1f)) { onClose() }
+            }
+            Text(
+                "ADB = 127.0.0.1 (tray auto-runs adb reverse).  USB-tether / Wi-Fi = enter the Mac's IP.",
+                color = TextDim, fontSize = 9.sp,
+            )
         }
     }
 }

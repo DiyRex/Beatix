@@ -9,6 +9,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.mutableStateOf
 import java.net.InetSocketAddress
 import java.net.Socket
 
@@ -18,7 +19,7 @@ import java.net.Socket
  * Auto-reconnects; messages are queued so the UI never blocks.
  */
 class MidiClient(
-    private val host: String = "127.0.0.1",
+    initialHost: String = "127.0.0.1",
     private val port: Int = 5557,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -26,23 +27,27 @@ class MidiClient(
     private var job: Job? = null
 
     @Volatile
-    var connected: Boolean = false
+    private var sock: Socket? = null
+
+    var host: String = initialHost
         private set
+
+    /** Reactive connection state for Compose UI. */
+    val connected = mutableStateOf(false)
 
     fun start() {
         job = scope.launch {
             while (isActive) {
+                val target = host
                 try {
-                    Socket().use { sock ->
-                        sock.tcpNoDelay = true
-                        sock.connect(InetSocketAddress(host, port), 2000)
-                        connected = true
-                        val out = sock.getOutputStream()
+                    Socket().use { s ->
+                        sock = s
+                        s.tcpNoDelay = true
+                        s.connect(InetSocketAddress(target, port), 2000)
+                        connected.value = true
+                        val out = s.getOutputStream()
                         val hb = launch {
-                            while (isActive) {
-                                queue.trySend("P\n")
-                                delay(2000)
-                            }
+                            while (isActive) { queue.trySend("P\n"); delay(2000) }
                         }
                         for (msg in queue) {
                             out.write(msg.toByteArray(Charsets.US_ASCII))
@@ -53,10 +58,17 @@ class MidiClient(
                 } catch (_: Exception) {
                     // fall through to reconnect
                 }
-                connected = false
-                delay(800)
+                connected.value = false
+                sock = null
+                delay(600)
             }
         }
+    }
+
+    /** Switch target host (ADB=127.0.0.1, or the Mac's USB-tether / Wi-Fi IP). */
+    fun setHost(h: String) {
+        host = h
+        try { sock?.close() } catch (_: Exception) {} // break current link -> reconnect to new host
     }
 
     private fun enqueue(line: String) {
