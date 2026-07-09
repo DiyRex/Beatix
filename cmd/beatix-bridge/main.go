@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/grandcat/zeroconf"
 )
@@ -134,9 +135,23 @@ func main() {
 	flag.Parse()
 
 	if err := midiInit(); err != nil {
-		log.Fatalf("MIDI init failed: %v", err)
+		// Non-fatal: the loopMIDI "Beatix" port may not be up yet. Keep the TCP
+		// listener + browse-key synthesis alive and retry MIDI in the background
+		// so the bridge never crash-loops waiting for the port.
+		log.Printf("MIDI init: %v", err)
+		log.Printf("browse keys work already; retrying MIDI until the 'Beatix' port appears...")
+		go func() {
+			for {
+				time.Sleep(2 * time.Second)
+				if err := midiInit(); err == nil {
+					log.Printf("MIDI port 'Beatix' is ready")
+					return
+				}
+			}
+		}()
+	} else {
+		log.Printf("MIDI port 'Beatix' is ready")
 	}
-	log.Printf("MIDI port 'Beatix' is ready")
 
 	if *selftest {
 		midiSend(statusNoteOn, 36, velOn)
