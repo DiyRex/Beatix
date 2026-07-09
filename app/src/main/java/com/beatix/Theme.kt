@@ -19,6 +19,7 @@ val Edge = Color(0xFF34343C)
 val TextCol = Color(0xFFEDEDF0)
 val TextDim = Color(0xFF8C8C94)
 val GrayBtn = Color(0xFFC2C2C8)
+val Cyan = Color(0xFF35C4E0)   // headphone-cue accent
 
 @Composable
 fun BeatixTheme(content: @Composable () -> Unit) {

@@ -43,18 +43,22 @@ Notes (buttons):
 Deck A: Play36 Cue37 Sync38 LoopIn39 LoopOut40 4Beat41 Call◄42 Call►43
         Pads44-51  ModeHotCue52 PadFX53 BeatJump54 Sampler55
 Deck B: same +32  → Play68 Cue69 Sync70 ... Sampler87
-Center: LoadA100 LoadB101 MasterCue102 Ch1Cue103 Ch2Cue104
-        BeatFxOnOff105 Beat◄106 Beat►107 FxSelect108 BrowsePush109
-        FxAssign1=110 FxAssign2=111 FxAssign1&2=112
+Center: LoadA100 LoadB101 MasterCue102 BrowseUp103 BrowseDown104
+        BeatFxOnOff105 Beat◄106 Beat►107
+        FxAssign1=109 FxAssign2=110
+        Ch1Cue(headphone)=111 Ch2Cue(headphone)=112
 ```
+FX SELECT is a RELATIVE CC encoder (not a note): FxSelect=CC38 (◄ sends -1, ► sends +1).
+Requires rekordbox single-FX mode + MIDI-learn.
+
 Control Change (continuous; sliders=Absolute, jog/browse=Relative):
 ```
 Deck A: Tempo0  Jog16
 Deck B: Tempo1  Jog17
 Center: Trim1=20 Trim2=21  Hi1=22 Hi2=23  Mid1=24 Mid2=25  Low1=26 Low2=27
-        CFX1=28 CFX2=29  ChFader1=30 ChFader2=31  Xfader=32
+        CFX1=28 CFX2=29  ChFader1=30 ChFader2=31  Xfader=32   (Trim/CFX now in-app)
         MasterLevel=33 MicLevel=34 HpMix=35 HpLevel=36
-        BeatFxLevel=37  BrowseRotate=38
+        BeatFxLevel=37  FxSelect(rel)=38  BrowseRotate=33
 ```
 
 ## Phone-fitted layout (Redmi, 873 × 393 dp, smaller jogs)

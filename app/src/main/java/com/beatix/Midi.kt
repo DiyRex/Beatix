@@ -111,6 +111,9 @@ data class DeckIds(
     val mid: Int,
     val low: Int,
     val fader: Int,
+    val trim: Int,              // channel gain (centered CC)
+    val cfx: Int,               // color FX / filter (centered CC)
+    val phoneCue: Int,          // headphone (pre-fader) cue (note)
 )
 
 val DeckA = DeckIds(
@@ -119,6 +122,7 @@ val DeckA = DeckIds(
     pads = (44..51).toList(), padFx = (0..7).toList(), beatJump = (8..15).toList(), sampler = (16..23).toList(),
     modeHotcue = 24, modePadfx = 25, modeBeatjump = 26, modeSampler = 27,
     tempo = 0, jogFwd = 33, jogBack = 35, hi = 22, mid = 24, low = 26, fader = 30,
+    trim = 20, cfx = 28, phoneCue = 111,
 )
 
 val DeckB = DeckIds(
@@ -127,6 +131,7 @@ val DeckB = DeckIds(
     pads = (76..83).toList(), padFx = (52..59).toList(), beatJump = (84..91).toList(), sampler = (92..99).toList(),
     modeHotcue = 28, modePadfx = 29, modeBeatjump = 30, modeSampler = 31,
     tempo = 1, jogFwd = 60, jogBack = 61, hi = 23, mid = 25, low = 27, fader = 31,
+    trim = 21, cfx = 29, phoneCue = 112,
 )
 
 /** Center / mixer ids. */
@@ -139,7 +144,8 @@ object Center {
     const val MASTER_CUE = 102
     const val XFADER = 32
     const val FX_ONOFF = 105
-    const val FX_SELECT = 108
+    const val FX_PARAM_DN = 108   // beat-FX parameter step down (◄)
+    const val FX_PARAM_UP = 113   // beat-FX parameter step up (►)
     const val FX_LEVEL = 37
     const val FX_ASSIGN1 = 109
     const val FX_ASSIGN2 = 110

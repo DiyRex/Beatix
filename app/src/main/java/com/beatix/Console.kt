@@ -1,6 +1,10 @@
 package com.beatix
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -8,6 +12,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -46,6 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.PI
 import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 enum class Side { LEFT, RIGHT }
 enum class PadMode { HOTCUE, PADFX, BEATJUMP, SAMPLER }
@@ -72,9 +80,9 @@ fun ConsoleScreen(midi: MidiClient, onHostChange: (String) -> Unit) {
                 .padding(5.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Deck(DeckA, Side.LEFT, midi, Modifier.weight(1f))
-            Mixer(midi, onSecret, Modifier.weight(1.05f))
-            Deck(DeckB, Side.RIGHT, midi, Modifier.weight(1f))
+            Deck(DeckA, Side.LEFT, midi, Modifier.weight(0.92f))
+            Mixer(midi, onSecret, Modifier.weight(1.2f))
+            Deck(DeckB, Side.RIGHT, midi, Modifier.weight(0.92f))
         }
         if (showSettings) SettingsOverlay(midi, onHostChange) { showSettings = false }
     }
@@ -165,7 +173,7 @@ private fun Mixer(midi: MidiClient, onSecret: () -> Unit, modifier: Modifier) {
         }
         Row(Modifier.fillMaxWidth().weight(0.74f), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             ChannelStrip("CH 1", DeckA, midi, Modifier.weight(1f))
-            FxColumn(midi, onSecret, Modifier.weight(0.95f))
+            FxColumn(midi, onSecret, Modifier.weight(0.84f))
             ChannelStrip("CH 2", DeckB, midi, Modifier.weight(1f))
         }
         Column(Modifier.fillMaxWidth().weight(0.13f), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -181,22 +189,68 @@ private fun Mixer(midi: MidiClient, onSecret: () -> Unit, modifier: Modifier) {
 private fun ChannelStrip(label: String, ids: DeckIds, midi: MidiClient, modifier: Modifier) {
     Column(modifier.fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(label, color = Amber, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-        Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            EqFader("HI", ids.hi, midi, Modifier.weight(1f))
-            EqFader("MID", ids.mid, midi, Modifier.weight(1f))
-            EqFader("LOW", ids.low, midi, Modifier.weight(1f))
+        MiniHFader("TRIM", ids.trim, midi, Modifier.fillMaxWidth().weight(0.14f))
+        Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            EqKnob("HI", ids.hi, midi, Modifier.weight(1f))
+            EqKnob("MID", ids.mid, midi, Modifier.weight(1f))
+            EqKnob("LOW", ids.low, midi, Modifier.weight(1f))
         }
+        MiniHFader("CFX", ids.cfx, midi, Modifier.fillMaxWidth().weight(0.14f))
         Text("VOL", color = TextDim, fontSize = 7.sp)
         Box(Modifier.fillMaxWidth().weight(0.5f), contentAlignment = Alignment.Center) {
             VFader(ids.fader, midi, 110, Modifier.fillMaxWidth(0.42f).fillMaxHeight())
         }
+        Pad("CUE ♪", ids.phoneCue, midi, Modifier.fillMaxWidth(0.82f).weight(0.24f), accent = Cyan)
     }
 }
 
+/** Label + short horizontal fader (center-detent) for TRIM / CFX — saves vertical space. */
 @Composable
-private fun EqFader(label: String, cc: Int, midi: MidiClient, modifier: Modifier) {
+private fun MiniHFader(label: String, cc: Int, midi: MidiClient, modifier: Modifier) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(label, color = TextDim, fontSize = 7.sp, modifier = Modifier.width(26.dp))
+        HFader(cc, midi, 64, Modifier.weight(1f).fillMaxHeight())
+    }
+}
+
+/** Rotary EQ/mixer knob: drag up/down to turn, double-tap to reset to center. */
+@Composable
+private fun EqKnob(label: String, cc: Int, midi: MidiClient, modifier: Modifier) {
+    var frac by remember { mutableFloatStateOf(0.5f) }
+    var active by remember { mutableStateOf(false) }
+    fun send() = midi.cc(cc, (frac * 127).toInt())
     Column(modifier.fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
-        VFader(cc, midi, 64, Modifier.weight(1f).fillMaxWidth(0.72f), centerTick = true, centerFill = true)
+        Box(
+            Modifier.weight(1f).fillMaxWidth()
+                .pointerInput(cc) {
+                    detectVerticalDragGestures(
+                        onDragStart = { active = true },
+                        onDragEnd = { active = false },
+                        onDragCancel = { active = false },
+                    ) { change, dy ->
+                        frac = (frac - dy / 260f).coerceIn(0f, 1f) // drag up = increase
+                        send(); change.consume()
+                    }
+                }
+                .pointerInput(cc) {
+                    detectTapGestures(onDoubleTap = { frac = 0.5f; send() })
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            Canvas(Modifier.fillMaxSize()) {
+                val r = size.minDimension / 2f
+                val c = Offset(size.width / 2f, size.height / 2f)
+                drawCircle(Brush.radialGradient(listOf(Color(0xFF2B2B33), Color(0xFF0E0E12)), center = c, radius = r), radius = r, center = c)
+                drawCircle(Edge, radius = r - 1.5f, center = c, style = Stroke(1.5f))
+                val ringR = r - 4f
+                val start = 135f
+                drawArc(Color(0xFF303038), start, 270f, false, topLeft = Offset(c.x - ringR, c.y - ringR), size = Size(ringR * 2, ringR * 2), style = Stroke(3.5f))
+                // fill from 12 o'clock centre out to current position (shows boost/cut)
+                drawArc(if (active) AmberHi else Amber, start + 135f, 270f * (frac - 0.5f), false, topLeft = Offset(c.x - ringR, c.y - ringR), size = Size(ringR * 2, ringR * 2), style = Stroke(3.5f))
+                val ang = Math.toRadians((start + 270f * frac).toDouble())
+                drawLine(if (active) AmberHi else Amber, c, Offset(c.x + ringR * cos(ang).toFloat(), c.y + ringR * sin(ang).toFloat()), strokeWidth = 2.5f)
+            }
+        }
         Text(label, color = TextDim, fontSize = 7.sp)
     }
 }
@@ -206,25 +260,29 @@ private fun FxColumn(midi: MidiClient, onSecret: () -> Unit, modifier: Modifier)
     Column(
         modifier.fillMaxHeight().clip(RoundedCornerShape(10.dp))
             .background(Brush.verticalGradient(listOf(Color(0xFF1D1D24), PanelDark))).padding(6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            "BEAT FX", color = Amber, fontSize = 9.sp, fontWeight = FontWeight.Bold,
+            "BEAT FX", color = Amber, fontSize = 8.sp, fontWeight = FontWeight.Bold,
             modifier = Modifier.pointerInput(Unit) { detectTapGestures { onSecret() } },
         )
-        Pad("ON", Center.FX_ONOFF, midi, Modifier.fillMaxWidth().weight(1.2f), accent = Amber)
-        Row(Modifier.fillMaxWidth().weight(0.9f), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            Pad("→ 1", Center.FX_ASSIGN1, midi, Modifier.weight(1f).fillMaxHeight())
-            Pad("→ 2", Center.FX_ASSIGN2, midi, Modifier.weight(1f).fillMaxHeight())
+        FxOnButton(Center.FX_ONOFF, midi, Modifier.fillMaxWidth().weight(0.85f))
+        Row(Modifier.fillMaxWidth().weight(0.62f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Pad("→1", Center.FX_ASSIGN1, midi, Modifier.weight(1f).fillMaxHeight())
+            Pad("→2", Center.FX_ASSIGN2, midi, Modifier.weight(1f).fillMaxHeight())
         }
-        Pad("SEL", Center.FX_SELECT, midi, Modifier.fillMaxWidth().weight(1f))
-        Row(Modifier.fillMaxWidth().weight(0.9f), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        Text("FX PARAM", color = TextDim, fontSize = 6.sp)
+        Row(Modifier.fillMaxWidth().weight(0.62f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            StepButton("◄", Center.FX_PARAM_DN, -1, midi, Modifier.weight(1f).fillMaxHeight(), note = true)
+            StepButton("►", Center.FX_PARAM_UP, +1, midi, Modifier.weight(1f).fillMaxHeight(), note = true)
+        }
+        Text("BEAT", color = TextDim, fontSize = 6.sp)
+        Row(Modifier.fillMaxWidth().weight(0.62f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             StepButton("◄", Center.BEAT_L, -1, midi, Modifier.weight(1f).fillMaxHeight(), note = true)
             StepButton("►", Center.BEAT_R, +1, midi, Modifier.weight(1f).fillMaxHeight(), note = true)
         }
-        Text("DEPTH", color = TextDim, fontSize = 7.sp)
-        VFader(Center.FX_LEVEL, midi, 0, Modifier.fillMaxWidth(0.5f).weight(1.5f))
+        Knob("DEPTH", Center.FX_LEVEL, midi, 0, Modifier.fillMaxWidth().weight(2.4f))
     }
 }
 
@@ -328,6 +386,83 @@ private fun ShiftButton(active: Boolean, onToggle: (Boolean) -> Unit, modifier: 
             },
         contentAlignment = Alignment.Center,
     ) { Text("SHIFT", color = if (active) Color.Black else TextDim, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+}
+
+/** BEAT FX on/off: latches like the console button and pulses/glows while active. */
+@Composable
+private fun FxOnButton(note: Int, midi: MidiClient, modifier: Modifier) {
+    var on by remember { mutableStateOf(false) }
+    val blink = rememberInfiniteTransition(label = "fxblink")
+    val glow by blink.animateFloat(
+        0.4f, 1f, infiniteRepeatable(tween(550), RepeatMode.Reverse), label = "glow",
+    )
+    val a = if (on) glow else 1f
+    Box(
+        modifier
+            .clip(RoundedCornerShape(11.dp))
+            .background(
+                if (on) Brush.verticalGradient(listOf(lerp(Amber, Color.White, 0.3f * a), Amber.copy(alpha = a)))
+                else Brush.verticalGradient(listOf(PadTop, PadBot)),
+            )
+            .border(2.dp, if (on) AmberHi.copy(alpha = a) else Amber.copy(alpha = 0.3f), RoundedCornerShape(11.dp))
+            .pointerInput(note) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    on = !on
+                    midi.note(note, true); midi.note(note, false) // pulse toggles the effect in the DJ app
+                    while (true) { val e = awaitPointerEvent(); if (e.changes.none { it.pressed }) break }
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(if (on) "ON ●" else "ON", color = if (on) Color.Black else TextCol, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+/** Rotary knob (vertical drag) with value arc — used for BEAT FX DEPTH/LEVEL. */
+@Composable
+private fun Knob(label: String, cc: Int, midi: MidiClient, initial: Int, modifier: Modifier) {
+    var frac by remember { mutableFloatStateOf(initial / 127f) }
+    var active by remember { mutableStateOf(false) }
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            Modifier.weight(1f).fillMaxWidth()
+                .pointerInput(cc) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        active = true
+                        var lastY = down.position.y
+                        val span = size.height.toFloat().coerceAtLeast(1f)
+                        while (true) {
+                            val ev = awaitPointerEvent()
+                            val ch = ev.changes.firstOrNull { it.id == down.id } ?: break
+                            if (!ch.pressed) break
+                            frac = (frac + (lastY - ch.position.y) / span).coerceIn(0f, 1f) // drag up = increase
+                            lastY = ch.position.y
+                            midi.cc(cc, (frac * 127).toInt())
+                            ch.consume()
+                        }
+                        active = false
+                    }
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            Canvas(Modifier.fillMaxSize()) {
+                val r = size.minDimension / 2f
+                val c = Offset(size.width / 2f, size.height / 2f)
+                drawCircle(Brush.radialGradient(listOf(Color(0xFF2B2B33), Color(0xFF0E0E12)), center = c, radius = r), radius = r, center = c)
+                drawCircle(Edge, radius = r - 2f, center = c, style = Stroke(2f))
+                val ringR = r - 5f
+                val start = 135f
+                drawArc(Color(0xFF303038), start, 270f, false, topLeft = Offset(c.x - ringR, c.y - ringR), size = Size(ringR * 2, ringR * 2), style = Stroke(5f))
+                drawArc(if (active) AmberHi else Amber, start, 270f * frac, false, topLeft = Offset(c.x - ringR, c.y - ringR), size = Size(ringR * 2, ringR * 2), style = Stroke(5f))
+                val ang = Math.toRadians((start + 270f * frac).toDouble())
+                drawCircle(if (active) AmberHi else Amber, radius = 3.5f, center = Offset(c.x + ringR * cos(ang).toFloat(), c.y + ringR * sin(ang).toFloat()))
+            }
+            Text("${(frac * 100).toInt()}", color = TextCol, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        }
+        Text(label, color = TextDim, fontSize = 7.sp)
+    }
 }
 
 @Composable

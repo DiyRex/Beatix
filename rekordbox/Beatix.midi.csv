@@ -53,9 +53,14 @@ TempoSlider,TempoSlider,KnobSlider,,B000,B001,,,,,,,,Fast,Tempo
 CrossFader,CrossFader,KnobSlider,B020,,,,,,,,,,Fast,Crossfader
 Load,Load,Button,,9064,9065,,,,,,,,Fast,Load to Deck
 FX1-1On,FX1-1On,Button,9069,,,,,,,,,,Fast,Beat FX On/Off
+FX1ParamDn,FX1-1ParamDown,Button,906C,,,,,,,,,,Fast,Beat FX parameter step down (MIDI-learn to Decrease Parameter 1)
+FX1ParamUp,FX1-1ParamUp,Button,9071,,,,,,,,,,Fast,Beat FX parameter step up (MIDI-learn to Increase Parameter 1)
 FX1-1,FX1-1,KnobSlider,B025,,,,,,,,,,Fast,Beat FX Level
 FX1-1BeatDown,FX1-1BeatDown,Button,906A,,,,,,,,,,Fast,Beat FX <
 FX1-1BeatUp,FX1-1BeatUp,Button,906B,,,,,,,,,,Fast,Beat FX >
 ReloopExit,ReloopExit,Button,,902A,904A,,,,,,,,Fast,Loop Exit/Reloop
 FX1Assign1,FX1Assign1,Button,906D,,,,,,,,,,Fast,Assign Beat FX to Deck 1
 FX1Assign2,FX1Assign2,Button,906E,,,,,,,,,,Fast,Assign Beat FX to Deck 2
+TrimGain,TrimGain,KnobSlider,,B014,B015,,,,,,,,Fast,Trim / gain (verify token or MIDI-learn)
+Filter,Filter,KnobSlider,,B01C,B01D,,,,,,,,Fast,Color FX / filter (verify token or MIDI-learn)
+HeadphoneCue,HeadphoneCue,Button,,906F,9070,,,,,,,,Fast,Headphone cue (verify token or MIDI-learn)
