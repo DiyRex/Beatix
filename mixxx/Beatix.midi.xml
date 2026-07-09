@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MixxxControllerPreset mixxxVersion="2.3.0+" schemaVersion="1">
+  <info>
+    <name>Beatix</name>
+    <author>Beatix</author>
+    <description>Beatix phone controller (via loopMIDI "Beatix"). 2 decks + mixer + Beat FX.</description>
+  </info>
+  <controller id="Beatix">
+    <scriptfiles>
+      <file filename="Beatix-scripts.js" functionprefix="Beatix"/>
+    </scriptfiles>
+    <controls>
+      <!-- ============ DECK A ([Channel1]) ============ -->
+      <control><group>[Channel1]</group><key>play</key><status>0x90</status><midino>0x24</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>cue_default</key><status>0x90</status><midino>0x25</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>beatsync</key><status>0x90</status><midino>0x26</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>loop_in</key><status>0x90</status><midino>0x27</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>loop_out</key><status>0x90</status><midino>0x28</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>beatloop_4_activate</key><status>0x90</status><midino>0x29</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>reloop_toggle</key><status>0x90</status><midino>0x2A</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>start_stop</key><status>0x90</status><midino>0x20</midino><options><normal/></options></control>
+      <!-- 8 hot cues -->
+      <control><group>[Channel1]</group><key>hotcue_1_activate</key><status>0x90</status><midino>0x2C</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>hotcue_2_activate</key><status>0x90</status><midino>0x2D</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>hotcue_3_activate</key><status>0x90</status><midino>0x2E</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>hotcue_4_activate</key><status>0x90</status><midino>0x2F</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>hotcue_5_activate</key><status>0x90</status><midino>0x30</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>hotcue_6_activate</key><status>0x90</status><midino>0x31</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>hotcue_7_activate</key><status>0x90</status><midino>0x32</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>hotcue_8_activate</key><status>0x90</status><midino>0x33</midino><options><normal/></options></control>
+      <!-- headphone cue (PFL) -->
+      <control><group>[Channel1]</group><key>pfl</key><status>0x90</status><midino>0x6F</midino><options><normal/></options></control>
+      <!-- knobs / faders -->
+      <control><group>[EqualizerRack1_[Channel1]_Effect1]</group><key>Beatix.eqHigh</key><status>0xB0</status><midino>0x16</midino><options><script-binding/></options></control>
+      <control><group>[EqualizerRack1_[Channel1]_Effect1]</group><key>Beatix.eqMid</key><status>0xB0</status><midino>0x18</midino><options><script-binding/></options></control>
+      <control><group>[EqualizerRack1_[Channel1]_Effect1]</group><key>Beatix.eqLow</key><status>0xB0</status><midino>0x1A</midino><options><script-binding/></options></control>
+      <control><group>[Channel1]</group><key>Beatix.gain</key><status>0xB0</status><midino>0x14</midino><options><script-binding/></options></control>
+      <control><group>[QuickEffectRack1_[Channel1]]</group><key>super1</key><status>0xB0</status><midino>0x1C</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>volume</key><status>0xB0</status><midino>0x1E</midino><options><normal/></options></control>
+      <control><group>[Channel1]</group><key>rate</key><status>0xB0</status><midino>0x00</midino><options><normal/></options></control>
+
+      <!-- ============ DECK B ([Channel2]) ============ -->
+      <control><group>[Channel2]</group><key>play</key><status>0x90</status><midino>0x44</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>cue_default</key><status>0x90</status><midino>0x45</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>beatsync</key><status>0x90</status><midino>0x46</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>loop_in</key><status>0x90</status><midino>0x47</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>loop_out</key><status>0x90</status><midino>0x48</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>beatloop_4_activate</key><status>0x90</status><midino>0x49</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>reloop_toggle</key><status>0x90</status><midino>0x4A</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>start_stop</key><status>0x90</status><midino>0x22</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>hotcue_1_activate</key><status>0x90</status><midino>0x4C</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>hotcue_2_activate</key><status>0x90</status><midino>0x4D</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>hotcue_3_activate</key><status>0x90</status><midino>0x4E</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>hotcue_4_activate</key><status>0x90</status><midino>0x4F</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>hotcue_5_activate</key><status>0x90</status><midino>0x50</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>hotcue_6_activate</key><status>0x90</status><midino>0x51</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>hotcue_7_activate</key><status>0x90</status><midino>0x52</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>hotcue_8_activate</key><status>0x90</status><midino>0x53</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>pfl</key><status>0x90</status><midino>0x70</midino><options><normal/></options></control>
+      <control><group>[EqualizerRack1_[Channel2]_Effect1]</group><key>Beatix.eqHigh</key><status>0xB0</status><midino>0x17</midino><options><script-binding/></options></control>
+      <control><group>[EqualizerRack1_[Channel2]_Effect1]</group><key>Beatix.eqMid</key><status>0xB0</status><midino>0x19</midino><options><script-binding/></options></control>
+      <control><group>[EqualizerRack1_[Channel2]_Effect1]</group><key>Beatix.eqLow</key><status>0xB0</status><midino>0x1B</midino><options><script-binding/></options></control>
+      <control><group>[Channel2]</group><key>Beatix.gain</key><status>0xB0</status><midino>0x15</midino><options><script-binding/></options></control>
+      <control><group>[QuickEffectRack1_[Channel2]]</group><key>super1</key><status>0xB0</status><midino>0x1D</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>volume</key><status>0xB0</status><midino>0x1F</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>rate</key><status>0xB0</status><midino>0x01</midino><options><normal/></options></control>
+
+      <!-- ============ CENTER / MIXER / FX ============ -->
+      <control><group>[Channel1]</group><key>LoadSelectedTrack</key><status>0x90</status><midino>0x64</midino><options><normal/></options></control>
+      <control><group>[Channel2]</group><key>LoadSelectedTrack</key><status>0x90</status><midino>0x65</midino><options><normal/></options></control>
+      <control><group>[Master]</group><key>crossfader</key><status>0xB0</status><midino>0x20</midino><options><normal/></options></control>
+      <!-- Beat FX (EffectUnit1) -->
+      <control><group>[EffectRack1_EffectUnit1_Effect1]</group><key>enabled</key><status>0x90</status><midino>0x69</midino><options><normal/></options></control>
+      <control><group>[EffectRack1_EffectUnit1]</group><key>group_[Channel1]_enable</key><status>0x90</status><midino>0x6D</midino><options><normal/></options></control>
+      <control><group>[EffectRack1_EffectUnit1]</group><key>group_[Channel2]_enable</key><status>0x90</status><midino>0x6E</midino><options><normal/></options></control>
+      <control><group>[EffectRack1_EffectUnit1]</group><key>mix</key><status>0xB0</status><midino>0x25</midino><options><normal/></options></control>
+      <control><group>[EffectRack1_EffectUnit1_Effect1]</group><key>Beatix.fxPrev</key><status>0x90</status><midino>0x6A</midino><options><script-binding/></options></control>
+      <control><group>[EffectRack1_EffectUnit1_Effect1]</group><key>Beatix.fxNext</key><status>0x90</status><midino>0x6B</midino><options><script-binding/></options></control>
+      <control><group>[EffectRack1_EffectUnit1]</group><key>Beatix.fxParamDn</key><status>0x90</status><midino>0x6C</midino><options><script-binding/></options></control>
+      <control><group>[EffectRack1_EffectUnit1]</group><key>Beatix.fxParamUp</key><status>0x90</status><midino>0x71</midino><options><script-binding/></options></control>
+    </controls>
+    <outputs/>
+  </controller>
+</MixxxControllerPreset>

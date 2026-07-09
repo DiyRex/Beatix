@@ -42,7 +42,13 @@ function Get-Src([string]$name) {
 Write-Host "`n=== Beatix Windows installer ===`n" -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
 
-# 1) bridge + tray + phone APK
+# 0) stop any running Beatix so we can overwrite the old (crash-looping) exe.
+#    Without this, Copy-Item fails because the .exe is locked/in-use.
+Write-Host "[0/5] Stopping any running Beatix (clean replace)..."
+Get-Process beatix-bridge,beatix-tray -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep -Milliseconds 600
+
+# 1) bridge + tray + phone APK  (force-overwrite the previous install)
 Write-Host "[1/5] Copying bridge + tray..."
 Copy-Item (Get-Src 'beatix-bridge.exe') $dest -Force
 Copy-Item (Get-Src 'beatix-tray.exe')   $dest -Force
@@ -99,8 +105,9 @@ $lnk.WorkingDirectory = $dest
 $lnk.Save()
 
 # 5) the one manual step — create the "Beatix" loopMIDI port
-Write-Host "[5/5] Opening loopMIDI..."
+Write-Host "[5/5] Opening loopMIDI + starting the new bridge..."
 if (Test-Path $loopExe) { Start-Process $loopExe }
+Start-Process $launcher   # start the fresh (non-crashing) bridge/tray now
 
 Write-Host @"
 

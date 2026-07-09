@@ -2,7 +2,11 @@
   BEATIX — WINDOWS INSTALL (SIMPLE)
 ========================================
 
-You need: a Windows PC + your Android phone + a USB cable.
+You need: a Windows PC + your Android phone (USB cable, or same Wi-Fi).
+
+Already installed an older Beatix? Just run the installer again — it stops the
+old bridge, overwrites everything with this version, and starts the fixed bridge.
+Nothing to uninstall first.
 
 --------------------------------------------------
 STEP 1  —  Install on the PC (once)
